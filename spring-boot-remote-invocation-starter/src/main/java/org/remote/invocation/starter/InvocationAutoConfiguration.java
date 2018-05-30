@@ -3,12 +3,15 @@ package org.remote.invocation.starter;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.config.InvocationConfig;
+import org.remote.invocation.starter.scan.ConsumesScan;
+import org.remote.invocation.starter.scan.ProducerScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
  * 配置入口
@@ -43,7 +46,19 @@ public class InvocationAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public ProducerScan producerScan() {
+        return new ProducerScan(properties.scanPath);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ConsumesScan consumesScan() {
+        return new ConsumesScan(properties.scanPath);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public InvocationConfig invocationConfig() {
-        return new InvocationConfig();
+        return new InvocationConfig(producer(), consumes(),producerScan(),consumesScan());
     }
 }

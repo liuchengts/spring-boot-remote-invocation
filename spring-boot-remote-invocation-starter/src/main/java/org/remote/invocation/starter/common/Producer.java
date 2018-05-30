@@ -31,7 +31,12 @@ public class Producer implements Serializable {
     Integer port;
 
     /**
-     * ip
+     * 内网ip
+     */
+    String localIp;
+
+    /**
+     * 外网ip
      */
     String ip;
 
