@@ -26,6 +26,7 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
 
     @Autowired
     InvocationProperties properties;
+
     private ApplicationContext applicationContext;
 
     @Override

@@ -20,7 +20,6 @@ import org.springframework.validation.annotation.Validated;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Configuration
 @Validated
 @ConfigurationProperties(prefix = "spring.invocation")
 public class InvocationProperties {

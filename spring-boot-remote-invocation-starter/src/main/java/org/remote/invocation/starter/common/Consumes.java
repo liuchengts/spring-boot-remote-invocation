@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -25,7 +26,7 @@ public class Consumes implements Serializable {
     String name;
 
     /**
-     * 消费接口
+     * 消费服务
      */
-    Set<Class> servicePackages;
+    Map<String, Set<MethodDTO>> services;
 }

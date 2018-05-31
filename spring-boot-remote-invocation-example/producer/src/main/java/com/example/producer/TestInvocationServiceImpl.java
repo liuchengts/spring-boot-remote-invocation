@@ -18,4 +18,8 @@ public class TestInvocationServiceImpl implements TestInvocationService {
     public String findOne(Long id) {
         return "findOne:" + id;
     }
+
+    public String findOne2(Long id) {
+        return "findOne2:" + id;
+    }
 }

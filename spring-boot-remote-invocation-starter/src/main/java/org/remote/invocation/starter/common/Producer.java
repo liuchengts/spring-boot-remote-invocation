@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,9 +42,9 @@ public class Producer implements Serializable {
     String ip;
 
     /**
-     * 服务包
+     * 提供的接口名
      */
-    Set<Class> servicePackages;
+    Map<String, Set<MethodDTO>> services;
 
     /**
      * 是否注册

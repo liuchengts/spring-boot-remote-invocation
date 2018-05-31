@@ -1,11 +1,17 @@
 package org.remote.invocation.starter.config;
+
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.annotation.InvocationService;
 import org.remote.invocation.starter.common.Consumes;
+import org.remote.invocation.starter.common.MethodDTO;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,6 +30,7 @@ public class InvocationConfig {
         getModel();
         addressConfig();
         producerScan();
+        consumesScan();
     }
 
     /**
@@ -47,29 +54,73 @@ public class InvocationConfig {
     /**
      * 获得生产者
      */
-    public void producerScan() {
-        Set<Class> servicePackages = new HashSet<>();
+    protected void producerScan() {
+        Map<String, Set<MethodDTO>> services = new HashMap<>();
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationService.class);
         if (beanNames != null) {
-            for (String str : beanNames) {
-                servicePackages.add(applicationContext.getBean(str).getClass());
+            for (String beanPath : beanNames) {
+                services.put(beanPath, addMethodDTOS(beanPath));
             }
         }
-        producer.setServicePackages(servicePackages);
+        producer.setServices(services);
     }
+
 
     /**
      * 获得消费者
      */
-    public void consumesScan() {
-        Set<Class> servicePackages = new HashSet<>();
+    protected void consumesScan() {
+        Map<String, Set<MethodDTO>> services = new HashMap<>();
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationResource.class);
         if (beanNames != null) {
-            for (String str : beanNames) {
-                servicePackages.add(applicationContext.getBean(str).getClass());
+            for (String beanPath : beanNames) {
+                services.put(beanPath, addMethodDTOS(beanPath));
             }
         }
-        consumes.setServicePackages(servicePackages);
+        consumes.setServices(services);
     }
 
+    /**
+     * 构造方法结果
+     *
+     * @param beanPath 实例路径
+     * @return 返回构造结果
+     */
+    private Set<MethodDTO> addMethodDTOS(String beanPath) {
+        Set<MethodDTO> methodDTOS = new HashSet<>();
+        try {
+            Object object = applicationContext.getBean(beanPath);
+            Class objClass = object.getClass();
+            String objClassParh = objClass.toString();
+            Method[] methods = objClass.getDeclaredMethods();
+            for (Method method : methods) {
+                System.out.println(method.getName());
+                methodDTOS.add(MethodDTO.builder()
+                        .name(method.getName())
+                        .objectPath(objClassParh)
+                        .returnType(method.getReturnType())
+                        .parameters(handleParameters(method))
+                        .build());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return methodDTOS;
+    }
+
+    /**
+     * 获得方法入参的属性
+     *
+     * @param method 方法
+     * @return 返回属性结果
+     */
+    private Map<String, Class> handleParameters(Method method) {
+        Map<String, Class> map = new HashMap<>();
+        Parameter[] parameters = method.getParameters();
+        for (Parameter parameter : parameters) {
+            System.out.println(parameter.getName() + " | " + parameter.getType());
+            map.put(parameter.getName(), parameter.getType());
+        }
+        return map;
+    }
 }
