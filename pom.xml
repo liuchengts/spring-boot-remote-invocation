@@ -9,6 +9,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>spring-boot-remote-invocation-starter</module>
-        <module>spring-boot-remote-invocation-demo</module>
+        <module>spring-boot-remote-invocation-example</module>
     </modules>
 </project>

@@ -1,10 +1,12 @@
 package org.remote.invocation.starter.config;
-
+import org.remote.invocation.starter.annotation.InvocationResource;
+import org.remote.invocation.starter.annotation.InvocationService;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
-import org.remote.invocation.starter.scan.ConsumesScan;
-import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
+import org.springframework.context.ApplicationContext;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 调用的配置中心
@@ -13,20 +15,23 @@ import org.remote.invocation.starter.utils.IPUtils;
  * @create 2018-05-29 18:00
  **/
 public class InvocationConfig {
+    ApplicationContext applicationContext;
     Producer producer;
     Consumes consumes;
-    ProducerScan producerScan;
-    ConsumesScan consumesScan;
 
-    public InvocationConfig(Producer producer,
-                            Consumes consumes,
-                            ProducerScan producerScan,
-                            ConsumesScan consumesScan) {
-        this.producer = producer;
-        this.consumes = consumes;
-        this.producerScan = producerScan;
-        this.consumesScan = consumesScan;
+    public InvocationConfig(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        getModel();
         addressConfig();
+        producerScan();
+    }
+
+    /**
+     * 从spring中获得基础的model
+     */
+    private void getModel() {
+        producer = applicationContext.getBean(Producer.class);
+        consumes = applicationContext.getBean(Consumes.class);
     }
 
     /**
@@ -37,6 +42,34 @@ public class InvocationConfig {
         producer.setIp(IPUtils.getInternetIP());
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
+    }
+
+    /**
+     * 获得生产者
+     */
+    public void producerScan() {
+        Set<Class> servicePackages = new HashSet<>();
+        String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationService.class);
+        if (beanNames != null) {
+            for (String str : beanNames) {
+                servicePackages.add(applicationContext.getBean(str).getClass());
+            }
+        }
+        producer.setServicePackages(servicePackages);
+    }
+
+    /**
+     * 获得消费者
+     */
+    public void consumesScan() {
+        Set<Class> servicePackages = new HashSet<>();
+        String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationResource.class);
+        if (beanNames != null) {
+            for (String str : beanNames) {
+                servicePackages.add(applicationContext.getBean(str).getClass());
+            }
+        }
+        consumes.setServicePackages(servicePackages);
     }
 
 }

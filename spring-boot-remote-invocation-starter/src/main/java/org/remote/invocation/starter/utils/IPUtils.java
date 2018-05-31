@@ -31,13 +31,11 @@ public class IPUtils {
             String ip;
             while (networkInterfaces.hasMoreElements()) {
                 networkInterface = networkInterfaces.nextElement();
-                System.out.println(networkInterface.getName());
                 inetAddresses = networkInterface.getInetAddresses();
                 while (inetAddresses.hasMoreElements()) {
                     inetAddress = inetAddresses.nextElement();
                     if (inetAddress != null && inetAddress instanceof Inet4Address) { // IPV4
                         ip = inetAddress.getHostAddress();
-                        System.out.println(ip);
                         ipList.add(ip);
                     }
                 }
