@@ -22,4 +22,17 @@ public class TestInvocationServiceImpl implements TestInvocationService {
     public String findOne2(Long id) {
         return "findOne2:" + id;
     }
+
+    private String findOne3(Long id) {
+        return "findOne2:" + id;
+    }
+
+    String findOne5(Long id) {
+        return "findOne2:" + id;
+    }
+
+    protected String findOne4(Long id) {
+        return "findOne2:" + id;
+    }
+
 }

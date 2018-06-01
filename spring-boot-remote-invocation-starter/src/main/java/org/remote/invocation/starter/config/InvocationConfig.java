@@ -1,5 +1,7 @@
 package org.remote.invocation.starter.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.annotation.InvocationService;
 import org.remote.invocation.starter.common.Consumes;
@@ -7,6 +9,7 @@ import org.remote.invocation.starter.common.MethodDTO;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -21,7 +24,9 @@ import java.util.Set;
  * @create 2018-05-29 18:00
  **/
 public class InvocationConfig {
+
     ApplicationContext applicationContext;
+    ObjectMapper objectMapper;
     Producer producer;
     Consumes consumes;
 
@@ -31,6 +36,18 @@ public class InvocationConfig {
         addressConfig();
         producerScan();
         consumesScan();
+        verify();
+    }
+
+    private void verify() {
+        try {
+            String producerJson = objectMapper.writeValueAsString(producer);
+            String consumesJson = objectMapper.writeValueAsString(consumes);
+            System.out.println("producerJson:" + producerJson);
+            System.out.println("consumesJson:" + consumesJson);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -39,6 +56,7 @@ public class InvocationConfig {
     private void getModel() {
         producer = applicationContext.getBean(Producer.class);
         consumes = applicationContext.getBean(Consumes.class);
+        objectMapper = applicationContext.getBean(ObjectMapper.class);
     }
 
     /**
@@ -92,15 +110,20 @@ public class InvocationConfig {
             Object object = applicationContext.getBean(beanPath);
             Class objClass = object.getClass();
             String objClassParh = objClass.toString();
-            Method[] methods = objClass.getDeclaredMethods();
-            for (Method method : methods) {
-                System.out.println(method.getName());
-                methodDTOS.add(MethodDTO.builder()
-                        .name(method.getName())
-                        .objectPath(objClassParh)
-                        .returnType(method.getReturnType())
-                        .parameters(handleParameters(method))
-                        .build());
+            Class<?> interfaces[] = objClass.getInterfaces();//获得Dog所实现的所有接口
+            for (Class<?> inte : interfaces) {
+                System.out.println("实现接口：" + inte);
+                Method[] methods = inte.getDeclaredMethods();
+                for (Method method : methods) {
+                    System.out.println(method.toGenericString());
+                    methodDTOS.add(MethodDTO.builder()
+                            .name(method.getName())
+                            .objectPath(objClassParh)
+                            .returnType(method.getReturnType())
+                            .parameters(handleParameters(method))
+                            .parameterCount(method.getParameterCount())
+                            .build());
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

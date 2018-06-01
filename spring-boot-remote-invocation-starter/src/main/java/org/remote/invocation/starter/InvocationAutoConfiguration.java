@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
  * 配置入口
@@ -37,10 +38,11 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
     @Bean
     @ConditionalOnMissingBean
     public Producer producer() {
+        System.out.println(properties.name);
         return Producer.builder()
                 .name(properties.name)
                 .port(properties.port)
-                .isRegister(properties.isRegister)
+                .isRegister(properties.isRegister == null ? Boolean.TRUE : properties.isRegister)
                 .build();
     }
 
