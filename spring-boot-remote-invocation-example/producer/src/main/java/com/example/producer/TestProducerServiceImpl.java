@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
  * @create 2018-05-30 14:51
  **/
 @InvocationService
-@Component("testInvocationService")
-public class TestInvocationServiceImpl implements TestInvocationService , TestInvocation2Service {
+@Component("testProducers")
+public class TestProducerServiceImpl implements TestProducerService, TestProducer2Service {
     static {
         System.out.println("我被初始化了" + void.class);
     }

@@ -7,11 +7,6 @@ import java.lang.annotation.*;
  *
  * @author liucheng
  */
-@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
 public @interface InvocationResource {
-
-    Class<?> interfaceClass() default void.class;
 }

@@ -2,6 +2,7 @@ package org.remote.invocation.starter.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.annotation.InvocationService;
 import org.remote.invocation.starter.common.Consumes;
@@ -9,8 +10,20 @@ import org.remote.invocation.starter.common.MethodBean;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.utils.IPUtils;
+import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.util.SystemPropertyUtils;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -27,9 +40,11 @@ public class InvocationConfig {
     ObjectMapper objectMapper;
     Producer producer;
     Consumes consumes;
+    String scanPath;
 
     public InvocationConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+        getScanPath();
         getModel();
         addressConfig();
         producerScan();
@@ -38,18 +53,23 @@ public class InvocationConfig {
     }
 
     /**
-     * 校验配置结果
+     * 初始化扫描路径
      */
-    private void verify() {
-        try {
-            String producerJson = objectMapper.writeValueAsString(producer);
-            String consumesJson = objectMapper.writeValueAsString(consumes);
-            System.out.println("producerJson:" + producerJson);
-            System.out.println("consumesJson:" + consumesJson);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+    private void getScanPath() {
+        String[] beanNames = applicationContext.getBeanNamesForAnnotation(EnableInvocationConfiguration.class);
+        if (beanNames != null) {
+            Object object = applicationContext.getBean(beanNames[0]);
+            EnableInvocationConfiguration enableInvocationConfiguration = object.getClass().getAnnotation(EnableInvocationConfiguration.class);
+            String value = enableInvocationConfiguration.value();
+            if (StringUtils.isEmpty(value)) {
+                scanPath = object.getClass().getPackage().getName();
+            } else {
+                scanPath = value;
+            }
+            System.out.println("扫描起点：" + scanPath);
         }
     }
+
 
     /**
      * 从spring中获得基础的model
@@ -89,14 +109,64 @@ public class InvocationConfig {
      * 获得消费者
      */
     protected void consumesScan() {
-        Map<String, ServiceBean> services = new HashMap<>();
-        String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationResource.class);
-        if (beanNames != null) {
-            for (String beanPath : beanNames) {
-                services.put(beanPath, getServiceBean(beanPath));
-            }
+        if (scanPath == null) {
+            return;
         }
+        Map<String, ServiceBean> services = new HashMap<>();
+        Set<String> classSet = doScan(scanPath);
+        classSet.forEach(path -> {
+            try {
+                Class aClass = ReflexUtils.loaderClass(path);
+                if (aClass != null) {
+                    ServiceBean serviceBean = new ServiceBean();
+                    serviceBean.setObjectPath(aClass.getName());
+                    Set<String> interfacePaths = new HashSet<>();
+                    Field[] fields = aClass.getDeclaredFields();
+                    for (Field field : fields) {
+                        if (field.isAnnotationPresent(InvocationResource.class)) {
+                            interfacePaths.add(field.getName());
+                        }
+                    }
+                    if (!interfacePaths.isEmpty()) {
+                        serviceBean.setInterfacePath(interfacePaths);
+                        services.put(path, serviceBean);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
         consumes.setServices(services);
+    }
+
+    /**
+     * 获得当前包下的类
+     *
+     * @param basePackage 包路径
+     * @return 返回包含的类
+     */
+    protected Set<String> doScan(String basePackage) {
+        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+        MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
+        Set<String> classes = new HashSet<>();
+        try {
+            String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX
+                    + ClassUtils.convertClassNameToResourcePath(SystemPropertyUtils
+                    .resolvePlaceholders(basePackage))
+                    + "/**/*.class";
+            Resource[] resources = resourcePatternResolver.getResources(packageSearchPath);
+
+            for (int i = 0; i < resources.length; i++) {
+                Resource resource = resources[i];
+                if (resource.isReadable()) {
+                    MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
+                    classes.add(metadataReader.getClassMetadata().getClassName());
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return classes;
     }
 
     /**
@@ -105,7 +175,7 @@ public class InvocationConfig {
      * @param beanPath 实例路径
      * @return 返回ServiceBean
      */
-    private ServiceBean getServiceBean(String beanPath) {
+    protected ServiceBean getServiceBean(String beanPath) {
         ServiceBean serviceBean = new ServiceBean();
         try {
             Object object = applicationContext.getBean(beanPath);
@@ -116,11 +186,9 @@ public class InvocationConfig {
             Set<String> interfacePaths = new HashSet<>();
             Set<MethodBean> methodBeans = new HashSet<>();
             for (Class<?> inte : interfaces) {
-                System.out.println("实现接口：" + inte);
                 interfacePaths.add(inte.getName());
                 Method[] methods = inte.getDeclaredMethods();
                 for (Method method : methods) {
-                    System.out.println(method.toGenericString());
                     methodBeans.add(MethodBean.builder()
                             .name(method.getName())
                             .returnType(method.getReturnType())
@@ -143,13 +211,26 @@ public class InvocationConfig {
      * @param method 方法
      * @return 返回属性结果
      */
-    private LinkedHashMap<String, Class> handleParameters(Method method) {
+    protected LinkedHashMap<String, Class> handleParameters(Method method) {
         LinkedHashMap<String, Class> map = new LinkedHashMap<>();
         Parameter[] parameters = method.getParameters();
         for (Parameter parameter : parameters) {
-            System.out.println(parameter.getName() + " | " + parameter.getType());
             map.put(parameter.getName(), parameter.getType());
         }
         return map;
+    }
+
+    /**
+     * 校验配置结果
+     */
+    private void verify() {
+        try {
+            String producerJson = objectMapper.writeValueAsString(producer);
+            String consumesJson = objectMapper.writeValueAsString(consumes);
+            System.out.println("producerJson:" + producerJson);
+            System.out.println("consumesJson:" + consumesJson);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 }
