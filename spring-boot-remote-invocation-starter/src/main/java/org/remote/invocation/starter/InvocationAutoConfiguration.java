@@ -38,11 +38,10 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
     @Bean
     @ConditionalOnMissingBean
     public Producer producer() {
-        System.out.println(properties.name);
         return Producer.builder()
-                .name(properties.name)
-                .port(properties.port)
-                .isRegister(properties.isRegister == null ? Boolean.TRUE : properties.isRegister)
+                .name(properties.getName())
+                .port(properties.getPort())
+                .isRegister(properties.getIsRegister() == null ? Boolean.TRUE : properties.getIsRegister())
                 .build();
     }
 
@@ -50,7 +49,7 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
     @ConditionalOnMissingBean
     public Consumes consumes() {
         return Consumes.builder()
-                .name(properties.name)
+                .name(properties.getName())
                 .build();
     }
 

@@ -5,11 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+
+import java.io.Serializable;
 
 /**
  * 属性配置
@@ -23,7 +22,7 @@ import org.springframework.validation.annotation.Validated;
 @AllArgsConstructor
 @Validated
 @ConfigurationProperties(prefix = "spring.invocation")
-public class InvocationProperties {
+public class InvocationProperties implements Serializable {
     /**
      * 名称
      */
