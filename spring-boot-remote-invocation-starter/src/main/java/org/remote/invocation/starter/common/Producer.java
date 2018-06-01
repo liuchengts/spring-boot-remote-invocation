@@ -44,7 +44,7 @@ public class Producer implements Serializable {
     /**
      * 提供的接口名
      */
-    Map<String, Set<MethodDTO>> services;
+    Map<String, ServiceBean> services;
 
     /**
      * 是否注册

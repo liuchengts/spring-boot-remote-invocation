@@ -54,6 +54,7 @@ public class IPUtils {
      */
     public static String getInternetIP() {
         for (String ip : getLocalIPList()) {
+            System.out.println(ip);
             if (!isIntranetIp(ip)) {
                 return ip;
             }

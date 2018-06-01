@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  **/
 @InvocationService
 @Component("testInvocationService")
-public class TestInvocationServiceImpl implements TestInvocationService {
+public class TestInvocationServiceImpl implements TestInvocationService , TestInvocation2Service {
     static {
         System.out.println("我被初始化了" + void.class);
     }
@@ -17,6 +17,11 @@ public class TestInvocationServiceImpl implements TestInvocationService {
     @Override
     public String findOne(Long id) {
         return "findOne:" + id;
+    }
+
+    @Override
+    public String update(Long id, Integer type) {
+        return "update:" + id;
     }
 
     public String findOne2(Long id) {
@@ -35,4 +40,13 @@ public class TestInvocationServiceImpl implements TestInvocationService {
         return "findOne2:" + id;
     }
 
+    @Override
+    public String find2One(Long id) {
+        return null;
+    }
+
+    @Override
+    public String update2(Long id, Integer type) {
+        return null;
+    }
 }

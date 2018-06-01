@@ -5,17 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.annotation.InvocationService;
 import org.remote.invocation.starter.common.Consumes;
-import org.remote.invocation.starter.common.MethodDTO;
+import org.remote.invocation.starter.common.MethodBean;
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 调用的配置中心
@@ -39,6 +37,9 @@ public class InvocationConfig {
         verify();
     }
 
+    /**
+     * 校验配置结果
+     */
     private void verify() {
         try {
             String producerJson = objectMapper.writeValueAsString(producer);
@@ -73,11 +74,11 @@ public class InvocationConfig {
      * 获得生产者
      */
     protected void producerScan() {
-        Map<String, Set<MethodDTO>> services = new HashMap<>();
+        Map<String, ServiceBean> services = new HashMap<>();
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationService.class);
         if (beanNames != null) {
             for (String beanPath : beanNames) {
-                services.put(beanPath, addMethodDTOS(beanPath));
+                services.put(beanPath, getServiceBean(beanPath));
             }
         }
         producer.setServices(services);
@@ -88,47 +89,52 @@ public class InvocationConfig {
      * 获得消费者
      */
     protected void consumesScan() {
-        Map<String, Set<MethodDTO>> services = new HashMap<>();
+        Map<String, ServiceBean> services = new HashMap<>();
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationResource.class);
         if (beanNames != null) {
             for (String beanPath : beanNames) {
-                services.put(beanPath, addMethodDTOS(beanPath));
+                services.put(beanPath, getServiceBean(beanPath));
             }
         }
         consumes.setServices(services);
     }
 
     /**
-     * 构造方法结果
+     * 根据class路径获得ServiceBean
      *
      * @param beanPath 实例路径
-     * @return 返回构造结果
+     * @return 返回ServiceBean
      */
-    private Set<MethodDTO> addMethodDTOS(String beanPath) {
-        Set<MethodDTO> methodDTOS = new HashSet<>();
+    private ServiceBean getServiceBean(String beanPath) {
+        ServiceBean serviceBean = new ServiceBean();
         try {
             Object object = applicationContext.getBean(beanPath);
             Class objClass = object.getClass();
             String objClassParh = objClass.toString();
-            Class<?> interfaces[] = objClass.getInterfaces();//获得Dog所实现的所有接口
+            Class<?>[] interfaces = objClass.getInterfaces();
+            serviceBean.setObjectPath(objClassParh);
+            Set<String> interfacePaths = new HashSet<>();
+            Set<MethodBean> methodBeans = new HashSet<>();
             for (Class<?> inte : interfaces) {
                 System.out.println("实现接口：" + inte);
+                interfacePaths.add(inte.getName());
                 Method[] methods = inte.getDeclaredMethods();
                 for (Method method : methods) {
                     System.out.println(method.toGenericString());
-                    methodDTOS.add(MethodDTO.builder()
+                    methodBeans.add(MethodBean.builder()
                             .name(method.getName())
-                            .objectPath(objClassParh)
                             .returnType(method.getReturnType())
                             .parameters(handleParameters(method))
                             .parameterCount(method.getParameterCount())
                             .build());
                 }
             }
+            serviceBean.setInterfacePath(interfacePaths);
+            serviceBean.setMethods(methodBeans);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return methodDTOS;
+        return serviceBean;
     }
 
     /**
@@ -137,8 +143,8 @@ public class InvocationConfig {
      * @param method 方法
      * @return 返回属性结果
      */
-    private Map<String, Class> handleParameters(Method method) {
-        Map<String, Class> map = new HashMap<>();
+    private LinkedHashMap<String, Class> handleParameters(Method method) {
+        LinkedHashMap<String, Class> map = new LinkedHashMap<>();
         Parameter[] parameters = method.getParameters();
         for (Parameter parameter : parameters) {
             System.out.println(parameter.getName() + " | " + parameter.getType());

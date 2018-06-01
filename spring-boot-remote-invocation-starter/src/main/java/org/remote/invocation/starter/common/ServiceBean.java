@@ -6,27 +6,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * 服务消费者实体模型
+ * 服务抽象
  *
  * @author liucheng
- * @create 2018-05-29 17:25
+ * @create 2018-06-01 15:41
  **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Consumes implements Serializable {
-    /**
-     * 名称
-     */
-    String name;
+public class ServiceBean implements Serializable {
 
     /**
-     * 消费服务
+     * 服务包路径
      */
-    Map<String, ServiceBean> services;
+    String objectPath;
+    /**
+     * 服务接口路径
+     */
+    Set<String> interfacePath;
+    /**
+     * 服务方法
+     */
+    Set<MethodBean> methods;
 }

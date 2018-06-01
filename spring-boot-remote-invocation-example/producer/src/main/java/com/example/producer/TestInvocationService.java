@@ -6,4 +6,6 @@ package com.example.producer;
  **/
 public interface TestInvocationService {
     String findOne(Long id);
+
+    String update(Long id, Integer type);
 }

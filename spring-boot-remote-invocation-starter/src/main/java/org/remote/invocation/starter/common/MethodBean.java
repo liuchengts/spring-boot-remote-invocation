@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -18,11 +19,8 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MethodDTO implements Serializable {
-    /**
-     * 可执行方法的包路径
-     */
-    String objectPath;
+public class MethodBean implements Serializable {
+
     /**
      * 方法名
      */
@@ -38,5 +36,5 @@ public class MethodDTO implements Serializable {
     /**
      * 参数key ->参数类型
      */
-    Map<String, Class> parameters;
+    LinkedHashMap<String, Class> parameters;
 }
