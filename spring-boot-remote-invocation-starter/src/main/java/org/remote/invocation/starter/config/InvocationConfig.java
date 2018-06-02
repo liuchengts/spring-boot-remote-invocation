@@ -139,6 +139,7 @@ public class InvocationConfig {
         consumes.setServices(services);
     }
 
+
     /**
      * 获得当前包下的类
      *
@@ -155,7 +156,6 @@ public class InvocationConfig {
                     .resolvePlaceholders(basePackage))
                     + "/**/*.class";
             Resource[] resources = resourcePatternResolver.getResources(packageSearchPath);
-
             for (int i = 0; i < resources.length; i++) {
                 Resource resource = resources[i];
                 if (resource.isReadable()) {
