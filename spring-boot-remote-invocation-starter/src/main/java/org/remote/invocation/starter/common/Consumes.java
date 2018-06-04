@@ -29,4 +29,8 @@ public class Consumes implements Serializable {
      * 消费服务
      */
     Map<String, ServiceBean> services;
+    /**
+     * 扫描路径
+     */
+    String scanPath;
 }
