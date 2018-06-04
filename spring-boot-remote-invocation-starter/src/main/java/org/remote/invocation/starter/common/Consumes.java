@@ -26,7 +26,7 @@ public class Consumes implements Serializable {
     String name;
 
     /**
-     * 消费服务
+     * 消费服务 service->ServiceBean
      */
     Map<String, ServiceBean> services;
     /**

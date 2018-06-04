@@ -1,4 +1,4 @@
-package com.example.producer;
+package com.example.producer.service;
 
 /**
  * @author liucheng

@@ -42,7 +42,7 @@ public class Producer implements Serializable {
     String ip;
 
     /**
-     * 提供的服务名
+     * 提供的服务名 service->ServiceBean
      */
     Map<String, ServiceBean> services;
 

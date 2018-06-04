@@ -10,10 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 生产者扫描配置
@@ -23,7 +20,7 @@ import java.util.Set;
  **/
 @Component
 public class ProducerScan {
-    InvocationConfig invocationConfig;
+    transient volatile InvocationConfig invocationConfig;
 
 
     /**
@@ -32,14 +29,15 @@ public class ProducerScan {
     public void init(InvocationConfig invocationConfig) {
         this.invocationConfig = invocationConfig;
         Producer producer = invocationConfig.getProducer();
-        Map<String, ServiceBean> services = new HashMap<>();
         String[] beanNames = invocationConfig.getApplicationContext().getBeanNamesForAnnotation(InvocationService.class);
+        Map<String, ServiceBean> services = new HashMap<>();
         if (beanNames != null) {
             for (String beanPath : beanNames) {
                 services.put(beanPath, this.getServiceBean(beanPath, invocationConfig.getApplicationContext()));
             }
         }
         producer.setServices(services);
+        invocationConfig.handleProducerInvocationCachelist();
     }
 
     /**
@@ -53,9 +51,8 @@ public class ProducerScan {
         try {
             Object object = applicationContext.getBean(beanPath);
             Class objClass = object.getClass();
-            String objClassParh = objClass.toString();
             Class<?>[] interfaces = objClass.getInterfaces();
-            serviceBean.setObjectPath(objClassParh);
+            serviceBean.setObjectClass(objClass);
             Set<String> interfacePaths = new HashSet<>();
             Set<MethodBean> methodBeans = new HashSet<>();
             for (Class<?> inte : interfaces) {

@@ -5,27 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
-import org.remote.invocation.starter.common.MethodBean;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
-import org.springframework.core.type.classreading.MetadataReader;
-import org.springframework.core.type.classreading.MetadataReaderFactory;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.SystemPropertyUtils;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.*;
+import java.security.Key;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 调用的配置中心
@@ -42,10 +34,13 @@ public class InvocationConfig {
     Consumes consumes;
     ConsumesScan consumesScan;
     ProducerScan producerScan;
+    List<Producer> producerInvocationCachelist = new ArrayList<>();
+    Map<String, Class> services = new HashMap<>();
 
     public InvocationConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         getModel();
+        initNetwork();
         initScan();
         addressConfig();
         outPrin();
@@ -63,12 +58,19 @@ public class InvocationConfig {
     }
 
     /**
+     * 初始化网络模块
+     */
+    private void initNetwork() {
+
+    }
+
+    /**
      * 初始化扫描
      */
     private void initScan() {
         getScanPath();
-        consumesScan.init(this);
         producerScan.init(this);
+        consumesScan.init(this);
     }
 
     /**
@@ -100,6 +102,35 @@ public class InvocationConfig {
         producer.setLocalIp(IPUtils.getLocalIP());
     }
 
+    /**
+     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
+     */
+    public void handleProducerInvocationCachelist() {
+        if (producerInvocationCachelist.isEmpty()) {
+            producerInvocationCachelist.add(producer);
+        }
+        producerInvocationCachelist.forEach(producer -> {
+            //TODO 这里暂时没考虑多同serviceName 多实例的情况
+            producer.getServices().values().forEach(serviceBean -> {
+                serviceBean.getInterfacePath().forEach(name -> {
+                    services.put(name, serviceBean.getObjectClass());
+                });
+            });
+        });
+    }
+
+    /**
+     * 根据服务名获得接口实现
+     *
+     * @param serviceName 服务名称
+     * @return ServiceObject
+     */
+    public Object getServiceObject(String serviceName) throws IllegalAccessException, InstantiationException {
+        if (!services.containsKey(serviceName)) {
+            return null;
+        }
+        return services.get(serviceName).newInstance();
+    }
 
     private void outPrin() {
         System.out.println("初始化invocation资源完成 配置输出：");

@@ -1,5 +1,7 @@
-package com.example.producer;
+package com.example.producer.service.impl;
 
+import com.example.producer.service.TestProducer2Service;
+import com.example.producer.service.TestProducerService;
 import org.remote.invocation.starter.annotation.InvocationService;
 import org.springframework.stereotype.Component;
 

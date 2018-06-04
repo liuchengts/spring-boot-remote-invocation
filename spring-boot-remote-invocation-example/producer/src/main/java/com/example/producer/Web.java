@@ -1,5 +1,7 @@
 package com.example.producer;
 
+import com.example.producer.service.TestProducer2Service;
+import com.example.producer.service.TestProducerService;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class Web {
     @InvocationResource
     private TestProducerService testProducerService;
-    @Autowired
+    @InvocationResource
     private TestProducer2Service testProducer2Service;
     @Autowired
     private ConsumesScan consumesScan;
@@ -27,7 +29,7 @@ public class Web {
         System.out.println("WEB层 测试资源获取========");
         consumesScan.outPrintConfig();
         producerScan.outPrintConfig();
-//        testProducerService.findOne(2l);
-//        testProducer2Service.find2One(2l);
+        testProducerService.findOne(2l);
+        testProducer2Service.find2One(2l);
     }
 }
