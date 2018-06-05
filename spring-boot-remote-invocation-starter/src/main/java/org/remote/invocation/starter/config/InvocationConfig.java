@@ -9,10 +9,12 @@ import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
+import org.remote.invocation.starter.utils.Http;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +63,17 @@ public class InvocationConfig {
      * 初始化网络模块
      */
     private void initNetwork() {
-
+        //TODO 这里的代码在网络模块完成后要删除
+        String json = Http.sendPost("http://localhost:8080/producers", null);
+        try {
+            System.out.println("远端提供者服务：" + json);
+            if (StringUtils.isEmpty(json)) {
+                return;
+            }
+            addProducerInvocationCache(objectMapper.readValue(json, Producer.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -100,6 +112,14 @@ public class InvocationConfig {
         producer.setIp(IPUtils.getInternetIP());
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
+    }
+
+    /**
+     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
+     */
+    public void addProducerInvocationCache(Producer producer) {
+        producerInvocationCachelist.add(producer);
+        handleProducerInvocationCachelist();
     }
 
     /**

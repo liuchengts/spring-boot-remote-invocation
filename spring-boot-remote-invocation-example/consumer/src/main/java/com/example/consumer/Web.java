@@ -1,7 +1,7 @@
-package com.example.producer;
+package com.example.consumer;
 
-import com.example.producer.service.TestProducer2Service;
-import com.example.producer.service.TestProducerService;
+import com.example.api.TestProducer2Service;
+import com.example.api.TestProducerService;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;

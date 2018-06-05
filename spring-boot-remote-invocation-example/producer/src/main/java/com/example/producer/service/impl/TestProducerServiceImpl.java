@@ -1,7 +1,7 @@
 package com.example.producer.service.impl;
 
-import com.example.producer.service.TestProducer2Service;
-import com.example.producer.service.TestProducerService;
+import com.example.api.TestProducer2Service;
+import com.example.api.TestProducerService;
 import org.remote.invocation.starter.annotation.InvocationService;
 import org.springframework.stereotype.Component;
 
@@ -18,37 +18,26 @@ public class TestProducerServiceImpl implements TestProducerService, TestProduce
 
     @Override
     public String findOne(Long id) {
+        System.out.println("findOne");
         return "findOne:" + id;
+    }
+
+
+    @Override
+    public String find2One(Long id) {
+        System.out.println("find2One");
+        return "find2One:" + id;
     }
 
     @Override
     public String update(Long id, Integer type) {
+        System.out.println("update");
         return "update:" + id;
-    }
-
-    public String findOne2(Long id) {
-        return "findOne2:" + id;
-    }
-
-    private String findOne3(Long id) {
-        return "findOne2:" + id;
-    }
-
-    String findOne5(Long id) {
-        return "findOne2:" + id;
-    }
-
-    protected String findOne4(Long id) {
-        return "findOne2:" + id;
-    }
-
-    @Override
-    public String find2One(Long id) {
-        return null;
     }
 
     @Override
     public String update2(Long id, Integer type) {
-        return null;
+        System.out.println("update2");
+        return "update2:" + id;
     }
 }

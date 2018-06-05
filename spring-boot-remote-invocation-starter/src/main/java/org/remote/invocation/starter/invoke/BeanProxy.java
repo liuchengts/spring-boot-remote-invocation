@@ -6,5 +6,5 @@ package org.remote.invocation.starter.invoke;
  * @author liucheng
  * @create 2018-06-04 15:21
  **/
-public  class BeanProxy {
+public  class BeanProxy implements InterfaceProxy{
 }
