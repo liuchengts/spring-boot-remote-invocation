@@ -64,16 +64,16 @@ public class InvocationConfig {
      */
     private void initNetwork() {
         //TODO 这里的代码在网络模块完成后要删除
-        String json = Http.sendPost("http://localhost:8080/producers", null);
-        try {
-            System.out.println("远端提供者服务：" + json);
-            if (StringUtils.isEmpty(json)) {
-                return;
-            }
-            addProducerInvocationCache(objectMapper.readValue(json, Producer.class));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        String json = Http.sendPost("http://localhost:8080/producers", null);
+//        try {
+//            System.out.println("远端提供者服务：" + json);
+//            if (StringUtils.isEmpty(json)) {
+//                return;
+//            }
+//            addProducerInvocationCache(objectMapper.readValue(json, Producer.class));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**

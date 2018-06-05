@@ -28,7 +28,6 @@ public class TestProducerServiceImpl implements TestProducerService, TestProduce
         System.out.println("find2One");
         return "find2One:" + id;
     }
-
     @Override
     public String update(Long id, Integer type) {
         System.out.println("update");
