@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.Set;
  * @author liucheng
  * @create 2018-05-29 16:23
  **/
+@Component
 @Data
 @Builder
 @NoArgsConstructor

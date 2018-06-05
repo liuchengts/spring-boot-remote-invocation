@@ -2,10 +2,8 @@ package org.remote.invocation.starter.scan;
 
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.common.Consumes;
-import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.config.InvocationConfig;
-import org.remote.invocation.starter.invoke.BeanProxy;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -22,8 +20,8 @@ import java.util.*;
  **/
 @Component
 public class ConsumesScan {
-    transient volatile InvocationConfig invocationConfig;
-    transient volatile ApplicationContext applicationContext;
+    volatile InvocationConfig invocationConfig;
+    volatile ApplicationContext applicationContext;
 
     /**
      * 初始化
@@ -43,15 +41,15 @@ public class ConsumesScan {
                 if (aClass != null) {
                     ServiceBean serviceBean = new ServiceBean();
                     serviceBean.setObjectClass(aClass);
-                    Set<String> interfacePaths = new HashSet<>();
+                    Set<Class> interfacePaths = new HashSet<>();
                     Field[] fields = aClass.getDeclaredFields();
                     for (Field field : fields) {
                         if (field.isAnnotationPresent(InvocationResource.class) && wired(aClass, field)) {
-                            interfacePaths.add(field.getName());
+                            interfacePaths.add(field.getClass());
                         }
                     }
                     if (!interfacePaths.isEmpty()) {
-                        serviceBean.setInterfacePath(interfacePaths);
+                        serviceBean.setInterfaceClasss(interfacePaths);
                         services.put(path, serviceBean);
                     }
                 }

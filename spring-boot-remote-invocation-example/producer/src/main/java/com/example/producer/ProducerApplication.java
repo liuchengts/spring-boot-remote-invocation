@@ -20,11 +20,11 @@ public class ProducerApplication {
         SpringApplication.run(ProducerApplication.class, args);
     }
 
-    @Bean(name = "/serviceProducers")
-    public HessianServiceExporter serviceProducers() {
-        HessianServiceExporter exporter = new HessianServiceExporter();
-        exporter.setService(applicationContext.getBean(TestProducerServiceImpl.class));
-        exporter.setServiceInterface(TestProducerService.class);
-        return exporter;
-    }
+    //    @Bean(name = "/serviceProducers")
+//    public HessianServiceExporter serviceProducers() {
+//        HessianServiceExporter exporter = new HessianServiceExporter();
+//        exporter.setService(applicationContext.getBean(TestProducerServiceImpl.class));
+//        exporter.setServiceInterface(TestProducerService.class);
+//        return exporter;
+//    }
 }

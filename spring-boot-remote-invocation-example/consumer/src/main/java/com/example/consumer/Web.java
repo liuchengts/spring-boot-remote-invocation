@@ -29,7 +29,7 @@ public class Web {
 
     @RequestMapping("/hessian")
     public String hessian() {
-        String url = "http://localhost:8080/serviceProducers";
+        String url = "http://localhost:8080/TestProducerService";
         HessianProxyFactory factory = new HessianProxyFactory();
         try {
             testProducerService = (TestProducerService) factory.create(TestProducerService.class, url);

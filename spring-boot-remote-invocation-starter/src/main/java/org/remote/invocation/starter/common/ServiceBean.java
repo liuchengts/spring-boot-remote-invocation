@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.remoting.caucho.HessianServiceExporter;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -25,9 +26,9 @@ public class ServiceBean implements Serializable {
      */
     Class objectClass;
     /**
-     * 服务接口路径
+     * 服务接口class
      */
-    Set<String> interfacePath;
+    Set<Class> interfaceClasss;
     /**
      * 服务方法
      */

@@ -6,16 +6,11 @@ import lombok.Data;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
-import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
-import org.remote.invocation.starter.utils.Http;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +26,7 @@ import java.util.Map;
 public class InvocationConfig {
 
     ApplicationContext applicationContext;
-    ObjectMapper objectMapper;
+    ObjectMapper objectMapper = new ObjectMapper();
     Producer producer;
     Consumes consumes;
     ConsumesScan consumesScan;
@@ -56,7 +51,6 @@ public class InvocationConfig {
         consumes = applicationContext.getBean(Consumes.class);
         consumesScan = applicationContext.getBean(ConsumesScan.class);
         producerScan = applicationContext.getBean(ProducerScan.class);
-        objectMapper = applicationContext.getBean(ObjectMapper.class);
     }
 
     /**
@@ -114,30 +108,30 @@ public class InvocationConfig {
         producer.setLocalIp(IPUtils.getLocalIP());
     }
 
-    /**
-     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
-     */
-    public void addProducerInvocationCache(Producer producer) {
-        producerInvocationCachelist.add(producer);
-        handleProducerInvocationCachelist();
-    }
+//    /**
+//     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
+//     */
+//    public void addProducerInvocationCache(Producer producer) {
+//        producerInvocationCachelist.add(producer);
+//        handleProducerInvocationCachelist();
+//    }
 
-    /**
-     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
-     */
-    public void handleProducerInvocationCachelist() {
-        if (producerInvocationCachelist.isEmpty()) {
-            producerInvocationCachelist.add(producer);
-        }
-        producerInvocationCachelist.forEach(producer -> {
-            //TODO 这里暂时没考虑多同serviceName 多实例的情况
-            producer.getServices().values().forEach(serviceBean -> {
-                serviceBean.getInterfacePath().forEach(name -> {
-                    services.put(name, serviceBean.getObjectClass());
-                });
-            });
-        });
-    }
+//    /**
+//     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
+//     */
+//    public void handleProducerInvocationCachelist() {
+//        if (producerInvocationCachelist.isEmpty()) {
+//            producerInvocationCachelist.add(producer);
+//        }
+//        producerInvocationCachelist.forEach(producer -> {
+//            //TODO 这里暂时没考虑多同serviceName 多实例的情况
+//            producer.getServices().values().forEach(serviceBean -> {
+//                serviceBean.getInterfaceClasss().forEach(name -> {
+//                    services.put(name, serviceBean.getObjectClass());
+//                });
+//            });
+//        });
+//    }
 
     /**
      * 根据服务名获得接口实现

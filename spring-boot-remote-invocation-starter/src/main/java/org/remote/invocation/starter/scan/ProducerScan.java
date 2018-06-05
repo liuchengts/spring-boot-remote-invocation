@@ -8,7 +8,6 @@ import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -20,8 +19,7 @@ import java.util.*;
  **/
 @Component
 public class ProducerScan {
-    transient volatile InvocationConfig invocationConfig;
-
+    volatile InvocationConfig invocationConfig;
 
     /**
      * 初始化
@@ -37,7 +35,6 @@ public class ProducerScan {
             }
         }
         producer.setServices(services);
-        invocationConfig.handleProducerInvocationCachelist();
     }
 
     /**
@@ -53,10 +50,10 @@ public class ProducerScan {
             Class objClass = object.getClass();
             Class<?>[] interfaces = objClass.getInterfaces();
             serviceBean.setObjectClass(objClass);
-            Set<String> interfacePaths = new HashSet<>();
+            Set<Class> interfacePaths = new HashSet<>();
             Set<MethodBean> methodBeans = new HashSet<>();
             for (Class<?> inte : interfaces) {
-                interfacePaths.add(inte.getName());
+                interfacePaths.add(inte);
                 Method[] methods = inte.getDeclaredMethods();
                 for (Method method : methods) {
                     methodBeans.add(MethodBean.builder()
@@ -67,7 +64,7 @@ public class ProducerScan {
                             .build());
                 }
             }
-            serviceBean.setInterfacePath(interfacePaths);
+            serviceBean.setInterfaceClasss(interfacePaths);
             serviceBean.setMethods(methodBeans);
         } catch (Exception e) {
             e.printStackTrace();
