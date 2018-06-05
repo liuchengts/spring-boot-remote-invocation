@@ -37,11 +37,11 @@ public class Producer implements Serializable {
      * 内网ip
      */
     String localIp;
-
-    /**
-     * 外网ip
-     */
-    String ip;
+//
+//    /**
+//     * 外网ip
+//     */
+//    String ip;
 
     /**
      * 提供的服务名 service->ServiceBean

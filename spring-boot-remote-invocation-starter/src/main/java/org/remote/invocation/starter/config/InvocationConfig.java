@@ -11,10 +11,6 @@ import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 调用的配置中心
@@ -31,9 +27,6 @@ public class InvocationConfig {
     Consumes consumes;
     ConsumesScan consumesScan;
     ProducerScan producerScan;
-    List<Producer> producerInvocationCachelist = new ArrayList<>();
-    Map<String, Class> services = new HashMap<>();
-
     public InvocationConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         getModel();
@@ -103,47 +96,9 @@ public class InvocationConfig {
      */
     private void addressConfig() {
         //获得当前外网ip
-        producer.setIp(IPUtils.getInternetIP());
+//        producer.setIp(IPUtils.getInternetIP());
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
-    }
-
-//    /**
-//     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
-//     */
-//    public void addProducerInvocationCache(Producer producer) {
-//        producerInvocationCachelist.add(producer);
-//        handleProducerInvocationCachelist();
-//    }
-
-//    /**
-//     * 处理远程服务提供，解析成Map<String, ServiceBean> 结构
-//     */
-//    public void handleProducerInvocationCachelist() {
-//        if (producerInvocationCachelist.isEmpty()) {
-//            producerInvocationCachelist.add(producer);
-//        }
-//        producerInvocationCachelist.forEach(producer -> {
-//            //TODO 这里暂时没考虑多同serviceName 多实例的情况
-//            producer.getServices().values().forEach(serviceBean -> {
-//                serviceBean.getInterfaceClasss().forEach(name -> {
-//                    services.put(name, serviceBean.getObjectClass());
-//                });
-//            });
-//        });
-//    }
-
-    /**
-     * 根据服务名获得接口实现
-     *
-     * @param serviceName 服务名称
-     * @return ServiceObject
-     */
-    public Object getServiceObject(String serviceName) throws IllegalAccessException, InstantiationException {
-        if (!services.containsKey(serviceName)) {
-            return null;
-        }
-        return services.get(serviceName).newInstance();
     }
 
     private void outPrin() {

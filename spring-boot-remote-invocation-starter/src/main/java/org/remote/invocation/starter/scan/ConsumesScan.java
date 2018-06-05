@@ -2,10 +2,12 @@ package org.remote.invocation.starter.scan;
 
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.common.Consumes;
+import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -18,10 +20,15 @@ import java.util.*;
  * @author liucheng
  * @create 2018-06-04 14:16
  **/
+@Scope
 @Component
 public class ConsumesScan {
     volatile InvocationConfig invocationConfig;
     volatile ApplicationContext applicationContext;
+    /**
+     * 接口class，接口impl远程调用路径集合
+     */
+    volatile Map<Class, Set<String>> routeCache = new HashMap<>();
 
     /**
      * 初始化
@@ -44,8 +51,8 @@ public class ConsumesScan {
                     Set<Class> interfacePaths = new HashSet<>();
                     Field[] fields = aClass.getDeclaredFields();
                     for (Field field : fields) {
-                        if (field.isAnnotationPresent(InvocationResource.class) && wired(aClass, field)) {
-                            interfacePaths.add(field.getClass());
+                        if (field.isAnnotationPresent(InvocationResource.class)) {
+                            interfacePaths.add(field.getType());
                         }
                     }
                     if (!interfacePaths.isEmpty()) {
@@ -59,6 +66,35 @@ public class ConsumesScan {
         });
         consumes.setServices(services);
 
+    }
+
+    /**
+     * 将远程的提供者加入到路由缓存中
+     *
+     * @param list 远程的提供者
+     */
+    public void initRouteCache(List<Producer> list) {
+        Consumes consumes = this.getConsumes();
+        for (Producer producer : list) {
+            StringBuffer buffer = new StringBuffer();
+            buffer.append("http://");
+            buffer.append(producer.getLocalIp());
+            buffer.append(producer.getPort());
+            String dns = buffer.toString();
+            for (String key : producer.getServices().keySet()) {
+                //只需要当前消费者需要的生产者，无关的服务抛弃掉
+                if (consumes.getServices().containsKey(key)) {
+                    producer.getServices().get(key).getInterfaceClasss().forEach(interfaceClass -> {
+                        Set<String> urlSet = new HashSet<>();
+                        if (routeCache.containsKey(interfaceClass)) {
+                            urlSet = routeCache.get(interfaceClass);
+                        }
+                        urlSet.add(dns + "/" + interfaceClass.getSimpleName());
+                        routeCache.put(interfaceClass, urlSet);
+                    });
+                }
+            }
+        }
     }
 
     /**
@@ -103,6 +139,6 @@ public class ConsumesScan {
      * @return
      */
     public Object getProducerOBJ(String serviceName) throws IllegalAccessException, InstantiationException {
-        return invocationConfig.getServiceObject(serviceName);
+        return null;
     }
 }

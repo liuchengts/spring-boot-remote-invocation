@@ -7,6 +7,7 @@ import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -17,6 +18,7 @@ import java.util.*;
  * @author liucheng
  * @create 2018-06-04 14:16
  **/
+@Scope
 @Component
 public class ProducerScan {
     volatile InvocationConfig invocationConfig;
