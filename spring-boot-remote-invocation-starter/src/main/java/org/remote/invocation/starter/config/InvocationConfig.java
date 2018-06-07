@@ -34,10 +34,10 @@ public class InvocationConfig {
     public InvocationConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         getModel();
+        addressConfig();
         initScanPath();
         initNetwork();
         initScan();
-        addressConfig();
         outPrin();
     }
 
@@ -90,8 +90,6 @@ public class InvocationConfig {
      * 绑定ip
      */
     private void addressConfig() {
-        //获得当前外网ip
-//        producer.setIp(IPUtils.getInternetIP());
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
     }

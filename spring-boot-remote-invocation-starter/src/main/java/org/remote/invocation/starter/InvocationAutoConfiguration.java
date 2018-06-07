@@ -2,12 +2,12 @@ package org.remote.invocation.starter;
 
 import org.remote.invocation.starter.invoke.BeanProxy;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 
 /**
  * 配置入口
@@ -17,9 +17,11 @@ import org.springframework.context.annotation.Configuration;
  **/
 @Configuration
 @ComponentScan({"org.remote.invocation.starter"})
+@EnableConfigurationProperties(InvocationProperties.class)
 public class InvocationAutoConfiguration implements ApplicationContextAware {
-
-    private ApplicationContext applicationContext;
+    @Autowired
+    InvocationProperties properties;
+    ApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -29,6 +31,6 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
     @Bean
     @ConditionalOnMissingBean
     public BeanProxy beanProxy() {
-        return new BeanProxy(applicationContext);
+        return new BeanProxy(applicationContext, properties);
     }
 }

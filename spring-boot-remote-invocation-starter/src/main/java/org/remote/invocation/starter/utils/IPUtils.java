@@ -120,7 +120,7 @@ public class IPUtils {
     public static boolean checkConnected(String ip, Integer leaderPort) {
         Socket socket = new Socket();
         try {
-            socket.connect(new InetSocketAddress(ip, leaderPort), 5);
+            socket.connect(new InetSocketAddress(ip, leaderPort), 15);
         } catch (IOException e) {
             return false;
         } finally {

@@ -21,5 +21,5 @@ public @interface EnableInvocationConfiguration {
     /**
      * leader通信端口
      */
-    int leaderPort() default 3000;
+    int leaderPort() default 2012;
 }

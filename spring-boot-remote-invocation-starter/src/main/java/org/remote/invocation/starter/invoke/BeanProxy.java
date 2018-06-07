@@ -1,5 +1,7 @@
 package org.remote.invocation.starter.invoke;
 
+import org.remote.invocation.starter.InvocationProperties;
+import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.springframework.beans.BeansException;
@@ -32,7 +34,12 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
     /**
      * 初始化
      */
-    public BeanProxy(ApplicationContext applicationContext) {
+    public BeanProxy(ApplicationContext applicationContext, InvocationProperties invocationProperties) {
+        Producer producer = applicationContext.getBean(Producer.class);
+        Consumes consumes = applicationContext.getBean(Consumes.class);
+        producer.setName(invocationProperties.getName() + "-producer");
+        producer.setPort(invocationProperties.getPort());
+        consumes.setName(invocationProperties.getName() + "-consumes");
         this.invocationConfig = new InvocationConfig(applicationContext);
         this.applicationContext = invocationConfig.getApplicationContext();
     }

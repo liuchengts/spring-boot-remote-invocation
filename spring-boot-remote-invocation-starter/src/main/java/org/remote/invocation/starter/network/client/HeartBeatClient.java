@@ -19,16 +19,20 @@ import java.util.concurrent.TimeUnit;
  * @create 2018-05-31 10:19
  **/
 @Data
-public class HeartBeatsClient {
+public class HeartBeatClient extends Thread {
     int port;
     String ip;
-    HeartBeatClientHandler heartBeatClientHandler;
+    HeartBeatClientHandler heartBeatClientHandler= new HeartBeatClientHandler();
+    public HeartBeatClient(int port, String ip) {
+        this.port = port;
+        this.ip = ip;
+    }
 
-    public HeartBeatsClient(int port, String ip) {
+    @Override
+    public void run() throws RuntimeException {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
-            heartBeatClientHandler = new HeartBeatClientHandler();
             b.group(group)
                     .channel(NioSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
@@ -47,9 +51,18 @@ public class HeartBeatsClient {
             System.out.println("Client start at ：" + ip + ":" + port);
             future.channel().closeFuture().sync();
         } catch (Exception e) {
-            throw new RuntimeException("创建客户端失败");
+            throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);
         } finally {
             group.shutdownGracefully();
         }
+    }
+
+    /**
+     * 发送消息
+     *
+     * @param msg 要发送的消息
+     */
+    public void sendMsg(String msg) {
+        heartBeatClientHandler.sendMsg(msg);
     }
 }
