@@ -1,14 +1,10 @@
 package com.example.producer;
 
-import com.example.api.TestProducerService;
-import com.example.producer.service.impl.TestProducerServiceImpl;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.remoting.caucho.HessianServiceExporter;
 
 @SpringBootApplication
 @EnableInvocationConfiguration

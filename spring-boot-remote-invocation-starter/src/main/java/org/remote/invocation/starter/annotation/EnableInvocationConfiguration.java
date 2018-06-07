@@ -13,5 +13,13 @@ import java.lang.annotation.*;
 @Documented
 @Inherited
 public @interface EnableInvocationConfiguration {
+    /**
+     * 扫描路径
+     */
     String value() default "";
+
+    /**
+     * leader通信端口
+     */
+    int leaderPort() default 3000;
 }

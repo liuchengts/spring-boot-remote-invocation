@@ -6,6 +6,8 @@ import lombok.Data;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.network.Network;
+import org.remote.invocation.starter.network.server.HeartBeatServer;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
@@ -27,9 +29,12 @@ public class InvocationConfig {
     Consumes consumes;
     ConsumesScan consumesScan;
     ProducerScan producerScan;
+    int leaderPort;
+
     public InvocationConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         getModel();
+        initScanPath();
         initNetwork();
         initScan();
         addressConfig();
@@ -50,24 +55,13 @@ public class InvocationConfig {
      * 初始化网络模块
      */
     private void initNetwork() {
-        //TODO 这里的代码在网络模块完成后要删除
-//        String json = Http.sendPost("http://localhost:8080/producers", null);
-//        try {
-//            System.out.println("远端提供者服务：" + json);
-//            if (StringUtils.isEmpty(json)) {
-//                return;
-//            }
-//            addProducerInvocationCache(objectMapper.readValue(json, Producer.class));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        new Network(leaderPort).start();
     }
 
     /**
      * 初始化扫描
      */
     private void initScan() {
-        getScanPath();
         producerScan.init(this);
         consumesScan.init(this);
     }
@@ -75,12 +69,13 @@ public class InvocationConfig {
     /**
      * 初始化扫描路径
      */
-    public void getScanPath() {
+    public void initScanPath() {
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(EnableInvocationConfiguration.class);
         if (beanNames != null) {
             Object object = applicationContext.getBean(beanNames[0]);
             EnableInvocationConfiguration enableInvocationConfiguration = object.getClass().getAnnotation(EnableInvocationConfiguration.class);
             String value = enableInvocationConfiguration.value();
+            leaderPort = enableInvocationConfiguration.leaderPort();
             if (StringUtils.isEmpty(value)) {
                 consumes.setScanPath(object.getClass().getPackage().getName());
             } else {

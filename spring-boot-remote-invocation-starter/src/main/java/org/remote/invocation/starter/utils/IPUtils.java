@@ -1,12 +1,9 @@
 package org.remote.invocation.starter.utils;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.io.IOException;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 获得ip
@@ -98,9 +95,49 @@ public class IPUtils {
         return false;
     }
 
+    /**
+     * 获得当前内网中所有的ip
+     *
+     * @return ip列表
+     */
+    public static Set<String> getLocalIPs() {
+        Set<String> ipSet = new LinkedHashSet<>();
+        String localIp = getLocalIP();
+        String startIp = localIp.substring(0, localIp.lastIndexOf("."));
+        for (int i = 1; i < 255; i++) {
+            ipSet.add(startIp + "." + i);
+        }
+        return ipSet;
+    }
+
+    /**
+     * 用Socket判断网络是否连通
+     *
+     * @param ip         要判断的ip
+     * @param leaderPort 要判断的端口
+     * @return true表示连通
+     */
+    public static boolean checkConnected(String ip, Integer leaderPort) {
+        Socket socket = new Socket();
+        try {
+            socket.connect(new InetSocketAddress(ip, leaderPort), 5);
+        } catch (IOException e) {
+            return false;
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+            }
+        }
+        return true;
+    }
+
     public static void main(String[] args) {
         System.out.println("外网地址：" + getInternetIP());
         System.out.println("内网地址：" + getLocalIP());
+        for (String ip : getLocalIPs()) {
+            System.out.println(ip);
+        }
     }
 
 }
