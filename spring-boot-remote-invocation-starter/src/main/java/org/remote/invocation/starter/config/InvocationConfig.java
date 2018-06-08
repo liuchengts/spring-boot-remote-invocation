@@ -8,7 +8,7 @@ import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
-import org.remote.invocation.starter.common.ServiceRoute;
+import org.remote.invocation.starter.cache.ServiceRoute;
 import org.remote.invocation.starter.invoke.BeanProxy;
 import org.remote.invocation.starter.network.Network;
 import org.remote.invocation.starter.scan.ConsumesScan;
@@ -70,7 +70,7 @@ public class InvocationConfig {
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
         consumes.setName(invocationProperties.getName() + "-consumes");
-        serviceRoute.setKey(producer.getLocalIp()+producer.getPort());
+        serviceRoute.setKey(producer.getLocalIp() + producer.getPort());
     }
 
     /**

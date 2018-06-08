@@ -1,7 +1,7 @@
 package org.remote.invocation.starter.network;
 
 import lombok.extern.slf4j.Slf4j;
-import org.remote.invocation.starter.common.ServiceRoute;
+import org.remote.invocation.starter.cache.ServiceRoute;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.network.client.NetworkClient;
 import org.remote.invocation.starter.network.server.NetworkServer;
@@ -67,6 +67,7 @@ public class Network extends Thread {
      */
     public void leaderClientLocalStart(int leaderPort) {
         leaderClientStart(IPUtils.getLocalIP(), leaderPort);
+        localHeartbeatStart();
     }
 
     /**
@@ -93,6 +94,13 @@ public class Network extends Thread {
         } catch (Exception e) {
             return;
         }
+    }
+
+    /**
+     * 本地客户端触发心跳发送->本地leader
+     */
+    private void localHeartbeatStart() {
+        mapNetworkClient.get(IPUtils.getLocalIP()).receipt();
     }
 
     /**

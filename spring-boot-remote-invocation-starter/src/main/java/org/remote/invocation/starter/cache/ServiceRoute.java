@@ -1,9 +1,12 @@
-package org.remote.invocation.starter.common;
+package org.remote.invocation.starter.cache;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.remote.invocation.starter.common.Consumes;
+import org.remote.invocation.starter.common.Producer;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -16,6 +19,7 @@ import java.util.List;
  * @create 2018-06-08 09:49
  **/
 @Component
+@Scope
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,7 +27,7 @@ import java.util.List;
 public class ServiceRoute implements Serializable {
 
     /**
-     * 唯一key
+     * 唯一key,ip+端口
      */
     String key;
     /**

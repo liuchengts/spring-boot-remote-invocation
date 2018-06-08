@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class NetworkClient extends Thread {
     int port;
     String ip;
-    NetworkHandler handler = new NetworkHandler();
+    NetworkClientHandler handler = new NetworkClientHandler();
 
     public NetworkClient(int port, String ip) {
         this.port = port;
@@ -69,4 +69,10 @@ public class NetworkClient extends Thread {
         handler.sendMsg(msg);
     }
 
+    /**
+     * 发送心跳消息
+     */
+    public void receipt() {
+        handler.receipt();
+    }
 }

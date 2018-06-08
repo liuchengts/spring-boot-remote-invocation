@@ -1,26 +1,26 @@
-package org.remote.invocation.starter.network.server;
+package org.remote.invocation.starter.network.client;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.network.BaseHandler;
 
+import java.util.Date;
+
 /**
  * @author liucheng
- * @create 2018-05-31 10:11
+ * @create 2018-05-31 10:18
  **/
 @Slf4j
-@Data
-public class NetworkServerHandler extends BaseHandler {
+public class NetworkClientHandler extends BaseHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         this.ctx = ctx;
         this.name = this.getClass().getSimpleName();
-        log.info("Server 服务端启动" + ctx.channel().remoteAddress());
+        log.info("Client 已启动" + ctx.channel().remoteAddress());
         new Thread(this::sendQueue).start();
     }
 
@@ -35,12 +35,8 @@ public class NetworkServerHandler extends BaseHandler {
         }
     }
 
-
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        // 发生异常关闭连接
-        cause.printStackTrace();
-        ctx.close();
+    public void channelInactive(ChannelHandlerContext ctx) {
+        log.info("Client  停止时间是：" + new Date());
     }
-
 }
