@@ -8,9 +8,9 @@ import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.invoke.BeanProxy;
 import org.remote.invocation.starter.network.Network;
-import org.remote.invocation.starter.network.server.HeartBeatServer;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
@@ -34,6 +34,7 @@ public class InvocationConfig {
     Consumes consumes;
     ConsumesScan consumesScan;
     ProducerScan producerScan;
+    ServiceRoute serviceRoute;
     int leaderPort;
 
     public InvocationConfig(ApplicationContext applicationContext, InvocationProperties invocationProperties) {
@@ -43,6 +44,7 @@ public class InvocationConfig {
         initServiceModelConfig();
         initScanPath();
         initScan();
+        initServiceRoute();
         initBeanProxy();
         initNetwork();
         outPrin();
@@ -56,6 +58,7 @@ public class InvocationConfig {
         consumes = applicationContext.getBean(Consumes.class);
         consumesScan = applicationContext.getBean(ConsumesScan.class);
         producerScan = applicationContext.getBean(ProducerScan.class);
+        serviceRoute = applicationContext.getBean(ServiceRoute.class);
     }
 
     /**
@@ -67,6 +70,7 @@ public class InvocationConfig {
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
         consumes.setName(invocationProperties.getName() + "-consumes");
+        serviceRoute.setKey(producer.getLocalIp()+producer.getPort());
     }
 
     /**
@@ -109,10 +113,18 @@ public class InvocationConfig {
     }
 
     /**
+     * 初始化服务路由ServiceRoute
+     */
+    private void initServiceRoute() {
+        serviceRoute.setConsumes(consumes);
+        serviceRoute.setProducer(producer);
+    }
+
+    /**
      * 初始化网络模块
      */
     private void initNetwork() {
-        new Network(leaderPort).start();
+        new Network(this).start();
     }
 
     /**

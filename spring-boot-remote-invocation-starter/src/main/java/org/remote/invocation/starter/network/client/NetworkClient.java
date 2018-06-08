@@ -21,11 +21,12 @@ import java.util.concurrent.TimeUnit;
  **/
 @Data
 @Slf4j
-public class HeartBeatClient extends Thread {
+public class NetworkClient extends Thread {
     int port;
     String ip;
-    HeartBeatClientHandler heartBeatClientHandler= new HeartBeatClientHandler();
-    public HeartBeatClient(int port, String ip) {
+    NetworkHandler handler = new NetworkHandler();
+
+    public NetworkClient(int port, String ip) {
         this.port = port;
         this.ip = ip;
     }
@@ -46,7 +47,7 @@ public class HeartBeatClient extends Thread {
                             p.addLast("ping", new IdleStateHandler(0, 4, 0, TimeUnit.SECONDS));
                             p.addLast("decoder", new StringDecoder());
                             p.addLast("encoder", new StringEncoder());
-                            p.addLast(heartBeatClientHandler);
+                            p.addLast(handler);
                         }
                     });
             ChannelFuture future = b.connect(ip, port).sync();
@@ -64,7 +65,8 @@ public class HeartBeatClient extends Thread {
      *
      * @param msg 要发送的消息
      */
-    public void sendMsg(String msg) {
-        heartBeatClientHandler.sendMsg(msg);
+    public void sendMsg(Object msg) {
+        handler.sendMsg(msg);
     }
+
 }

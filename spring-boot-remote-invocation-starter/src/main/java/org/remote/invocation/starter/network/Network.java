@@ -1,8 +1,10 @@
 package org.remote.invocation.starter.network;
 
 import lombok.extern.slf4j.Slf4j;
-import org.remote.invocation.starter.network.client.HeartBeatClient;
-import org.remote.invocation.starter.network.server.HeartBeatServer;
+import org.remote.invocation.starter.common.ServiceRoute;
+import org.remote.invocation.starter.config.InvocationConfig;
+import org.remote.invocation.starter.network.client.NetworkClient;
+import org.remote.invocation.starter.network.server.NetworkServer;
 import org.remote.invocation.starter.utils.IPUtils;
 
 import java.util.Map;
@@ -17,24 +19,23 @@ import java.util.concurrent.*;
  **/
 @Slf4j
 public class Network extends Thread {
+    InvocationConfig invocationConfig;
     int leaderPort;
     final static ExecutorService executor = Executors.newCachedThreadPool();
-    static Map<String, HeartBeatClient> mapHeartBeatsClient = new ConcurrentHashMap<>();
-    HeartBeatServer heartBeatServerLeader;
-    HeartBeatClient heartBeatClientLocal;
+    static Map<String, NetworkClient> mapNetworkClient = new ConcurrentHashMap<>();
+    NetworkServer networkLeaderServer;
 
-    public Network(int leaderPort) {
-        this.leaderPort = leaderPort;
+    public Network(InvocationConfig invocationConfig) {
+        this.invocationConfig = invocationConfig;
+        this.leaderPort = invocationConfig.getLeaderPort();
     }
 
     @Override
     public void run() {
-        heartBeatServerStart(leaderPort);
-        heartBeatClientLocalStart(leaderPort);
-        heartBeatClientLocal = mapHeartBeatsClient.get(IPUtils.getLocalIP());
-        heartBeatServerLeader.sendMsg("服务端测试发送");
-        heartBeatClientLocal.sendMsg("测试消息发送");
+        leaderServerStart(leaderPort);
+        leaderClientLocalStart(leaderPort);
         publishLeader(leaderPort);
+        regRoute();
     }
 
     /**
@@ -43,12 +44,12 @@ public class Network extends Thread {
      * @param leaderPort 端口
      * @return 返回创建的leader
      */
-    public void heartBeatServerStart(int leaderPort) {
+    public void leaderServerStart(int leaderPort) {
         try {
-            heartBeatServerLeader = new HeartBeatServer(leaderPort);
-            heartBeatServerLeader.start();
+            networkLeaderServer = new NetworkServer(leaderPort);
+            networkLeaderServer.start();
             while (true) {
-                if (heartBeatServerLeader.getState().equals(State.WAITING)) {
+                if (networkLeaderServer.getState().equals(State.WAITING)) {
                     return;
                 } else {
                     Thread.sleep(10);
@@ -60,12 +61,12 @@ public class Network extends Thread {
     }
 
     /**
-     * 创建本机客户端，连接到远程leader
+     * 创建本机客户端，连接到本地leader
      *
      * @param leaderPort leader端口
      */
-    public void heartBeatClientLocalStart(int leaderPort) {
-        heartBeatClientStart(IPUtils.getLocalIP(), leaderPort);
+    public void leaderClientLocalStart(int leaderPort) {
+        leaderClientStart(IPUtils.getLocalIP(), leaderPort);
     }
 
     /**
@@ -73,17 +74,17 @@ public class Network extends Thread {
      *
      * @param leaderPort leader端口
      */
-    public void heartBeatClientStart(String ip, int leaderPort) {
-        if (mapHeartBeatsClient.containsKey(ip)) {
+    public void leaderClientStart(String ip, int leaderPort) {
+        if (mapNetworkClient.containsKey(ip)) {
             log.info(ip + ":" + leaderPort + " Client已存在");
             return;
         }
         try {
-            HeartBeatClient heartBeatClient = new HeartBeatClient(leaderPort, ip);
-            heartBeatClient.start();
+            NetworkClient networkClient = new NetworkClient(leaderPort, ip);
+            networkClient.start();
             while (true) {
-                if (heartBeatClient.getState().equals(State.WAITING)) {
-                    mapHeartBeatsClient.put(ip, heartBeatClient);
+                if (networkClient.getState().equals(State.WAITING)) {
+                    mapNetworkClient.put(ip, networkClient);
                     return;
                 } else {
                     Thread.sleep(10);
@@ -111,7 +112,7 @@ public class Network extends Thread {
                         cdOrder.await(); // 处于等待状态
                         try {
                             if (IPUtils.checkConnected(ip, leaderPort)) {
-                                heartBeatClientStart(ip, leaderPort);
+                                leaderClientStart(ip, leaderPort);
                             }
                         } catch (Exception e) {
                             // XXX: handle exception
@@ -132,13 +133,16 @@ public class Network extends Thread {
             e.printStackTrace();
         }
         executor.shutdown();
-        log.info("publishLeader结果:" + (mapHeartBeatsClient.size() - 1));
+        log.info("publishLeader结果:" + (mapNetworkClient.size() - 1));
     }
 
     /**
-     * 推送路由信息
+     * 将本地路由信息推送推送到所有leader
      */
-    private void regRoute(){
-
+    private void regRoute() {
+        ServiceRoute serviceRoute = invocationConfig.getServiceRoute();
+        mapNetworkClient.values().forEach(client -> {
+            client.sendMsg(serviceRoute);
+        });
     }
 }

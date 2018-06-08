@@ -17,7 +17,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 
@@ -27,11 +26,11 @@ import java.util.concurrent.TimeUnit;
  **/
 @Data
 @Slf4j
-public class HeartBeatServer extends Thread {
+public class NetworkServer extends Thread {
     int port;
-    HeartBeatServerHandler heartBeatServerHandler = new HeartBeatServerHandler();
+    NetworkServerHandler handler = new NetworkServerHandler();
 
-    public HeartBeatServer(int port) {
+    public NetworkServer(int port) {
         this.port = port;
     }
 
@@ -47,7 +46,7 @@ public class HeartBeatServer extends Thread {
                             ch.pipeline().addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
                             ch.pipeline().addLast("decoder", new StringDecoder());
                             ch.pipeline().addLast("encoder", new StringEncoder());
-                            ch.pipeline().addLast(heartBeatServerHandler);
+                            ch.pipeline().addLast(handler);
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -67,7 +66,7 @@ public class HeartBeatServer extends Thread {
      *
      * @param msg 要发送的消息
      */
-    public void sendMsg(String msg) {
-        heartBeatServerHandler.sendMsg(msg);
+    public void sendMsg(Object msg) {
+        handler.sendMsg(msg);
     }
 }

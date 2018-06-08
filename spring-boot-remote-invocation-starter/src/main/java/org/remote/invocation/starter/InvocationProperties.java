@@ -36,7 +36,7 @@ public class InvocationProperties implements Serializable {
     Integer port;
 
     /**
-     * leader通信端口
+     * leader通信端口，此配置优先应用
      */
     Integer leaderPort;
 
