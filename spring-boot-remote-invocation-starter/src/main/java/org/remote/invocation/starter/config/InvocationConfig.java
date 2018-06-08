@@ -3,6 +3,7 @@ package org.remote.invocation.starter.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
@@ -22,6 +23,7 @@ import org.springframework.util.StringUtils;
  * @author liucheng
  * @create 2018-05-29 18:00
  **/
+@Slf4j
 @Data
 public class InvocationConfig {
 
@@ -87,7 +89,7 @@ public class InvocationConfig {
             } else {
                 consumes.setScanPath(value);
             }
-            System.out.println("扫描起点：" + consumes.getScanPath());
+            log.info("扫描起点：" + consumes.getScanPath());
         }
     }
 
@@ -117,7 +119,7 @@ public class InvocationConfig {
      * 输出配置
      */
     private void outPrin() {
-        System.out.println("初始化invocation资源完成 配置输出：");
+        log.info("初始化invocation资源完成 配置输出：");
         verifyProducerJSON();
         verifyConsumesJSON();
     }
@@ -128,7 +130,7 @@ public class InvocationConfig {
     public void verifyProducerJSON() {
         try {
             String producerJson = objectMapper.writeValueAsString(producer);
-            System.out.println("producerJson:" + producerJson);
+            log.info("producerJson:" + producerJson);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -140,7 +142,7 @@ public class InvocationConfig {
     public void verifyConsumesJSON() {
         try {
             String consumesJson = objectMapper.writeValueAsString(consumes);
-            System.out.println("consumesJson:" + consumesJson);
+            log.info("consumesJson:" + consumesJson);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

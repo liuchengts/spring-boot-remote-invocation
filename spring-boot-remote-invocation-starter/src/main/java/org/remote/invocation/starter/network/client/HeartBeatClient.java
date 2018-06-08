@@ -11,6 +11,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @create 2018-05-31 10:19
  **/
 @Data
+@Slf4j
 public class HeartBeatClient extends Thread {
     int port;
     String ip;
@@ -48,7 +50,7 @@ public class HeartBeatClient extends Thread {
                         }
                     });
             ChannelFuture future = b.connect(ip, port).sync();
-            System.out.println("Client start at ：" + ip + ":" + port);
+            log.info("Client start at ：" + ip + ":" + port);
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);

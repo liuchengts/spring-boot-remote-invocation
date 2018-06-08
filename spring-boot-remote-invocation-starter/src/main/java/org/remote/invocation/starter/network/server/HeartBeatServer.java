@@ -14,6 +14,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.Callable;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  * @create 2018-05-31 10:15
  **/
 @Data
+@Slf4j
 public class HeartBeatServer extends Thread {
     int port;
     HeartBeatServerHandler heartBeatServerHandler = new HeartBeatServerHandler();
@@ -51,7 +53,7 @@ public class HeartBeatServer extends Thread {
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             // 绑定端口，开始接收进来的连接
             ChannelFuture future = sbs.bind(port).sync();
-            System.out.println("Server start listen at " + port);
+            log.info("Server start listen at " + port);
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             bossGroup.shutdownGracefully();

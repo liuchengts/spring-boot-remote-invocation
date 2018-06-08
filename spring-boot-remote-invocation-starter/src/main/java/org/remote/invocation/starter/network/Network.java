@@ -1,5 +1,6 @@
 package org.remote.invocation.starter.network;
 
+import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.network.client.HeartBeatClient;
 import org.remote.invocation.starter.network.server.HeartBeatServer;
 import org.remote.invocation.starter.utils.IPUtils;
@@ -14,6 +15,7 @@ import java.util.concurrent.*;
  * @author liucheng
  * @create 2018-06-06 14:00
  **/
+@Slf4j
 public class Network extends Thread {
     int leaderPort;
     final static ExecutorService executor = Executors.newCachedThreadPool();
@@ -53,7 +55,7 @@ public class Network extends Thread {
                 }
             }
         } catch (Exception e) {
-            System.out.println("leader已存在");
+            log.info("leader已存在");
         }
     }
 
@@ -73,7 +75,7 @@ public class Network extends Thread {
      */
     public void heartBeatClientStart(String ip, int leaderPort) {
         if (mapHeartBeatsClient.containsKey(ip)) {
-            System.out.println(ip + ":" + leaderPort + " Client已存在");
+            log.info(ip + ":" + leaderPort + " Client已存在");
             return;
         }
         try {
@@ -130,7 +132,7 @@ public class Network extends Thread {
             e.printStackTrace();
         }
         executor.shutdown();
-        System.out.println("publishLeader结果:" + (mapHeartBeatsClient.size() - 1));
+        log.info("publishLeader结果:" + (mapHeartBeatsClient.size() - 1));
     }
 
     /**

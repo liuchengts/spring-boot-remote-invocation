@@ -5,6 +5,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.Set;
  * @author liucheng
  * @create 2018-05-31 10:11
  **/
+@Slf4j
+@Data
 public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
     private int loss_connect_time = 0;
     ChannelHandlerContext ctx;
@@ -25,9 +29,9 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE) {
                 loss_connect_time++;
-                System.out.println("Server 30 秒没有接收到客户端的信息了");
+                log.info("Server 30 秒没有接收到客户端的信息了");
                 if (loss_connect_time > 30) {
-                    System.out.println("Server 关闭这个不活跃的channel");
+                    log.info("Server 关闭这个不活跃的channel");
                     ctx.channel().close();
                 }
             }
@@ -39,7 +43,7 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            System.out.println("Server 收到客户端发来的消息:" + ctx.channel().remoteAddress() + "->Server :" + msg.toString());
+            log.info("Server 收到客户端发来的消息:" + ctx.channel().remoteAddress() + "->Server :" + msg.toString());
         } finally {
             ReferenceCountUtil.release(msg);
         }
@@ -48,7 +52,7 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         this.ctx = ctx;
-        System.out.println("Server 服务监听启动");
+        log.info("Server 服务监听启动");
         Thread threadsendQueue = new Thread(() -> sendQueue());
         threadsendQueue.start();
     }
@@ -81,7 +85,7 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
      * 处理待发送队列
      */
     private void sendQueue() {
-        System.out.println("待发送消息队列启动");
+        log.info("待发送消息队列启动");
         try {
             while (true) {
                 if (msgList.isEmpty()) {

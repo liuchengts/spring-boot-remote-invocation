@@ -1,5 +1,7 @@
 package org.remote.invocation.starter.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
@@ -11,6 +13,7 @@ import java.util.concurrent.TimeUnit;
  * @author liucheng
  * @create 2018-05-30 11:18
  **/
+@Slf4j
 public class IPUtils {
 
     /**
@@ -133,10 +136,10 @@ public class IPUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println("外网地址：" + getInternetIP());
-        System.out.println("内网地址：" + getLocalIP());
+        log.info("外网地址：" + getInternetIP());
+        log.info("内网地址：" + getLocalIP());
         for (String ip : getLocalIPs()) {
-            System.out.println(ip);
+            log.info(ip);
         }
     }
 
