@@ -3,9 +3,11 @@ package org.remote.invocation.starter.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.invoke.BeanProxy;
 import org.remote.invocation.starter.network.Network;
 import org.remote.invocation.starter.network.server.HeartBeatServer;
 import org.remote.invocation.starter.scan.ConsumesScan;
@@ -24,6 +26,7 @@ import org.springframework.util.StringUtils;
 public class InvocationConfig {
 
     ApplicationContext applicationContext;
+    InvocationProperties invocationProperties;
     ObjectMapper objectMapper = new ObjectMapper();
     Producer producer;
     Consumes consumes;
@@ -31,13 +34,15 @@ public class InvocationConfig {
     ProducerScan producerScan;
     int leaderPort;
 
-    public InvocationConfig(ApplicationContext applicationContext) {
+    public InvocationConfig(ApplicationContext applicationContext, InvocationProperties invocationProperties) {
         this.applicationContext = applicationContext;
+        this.invocationProperties = invocationProperties;
         getModel();
-        addressConfig();
+        initServiceModelConfig();
         initScanPath();
-        initNetwork();
         initScan();
+        initBeanProxy();
+        initNetwork();
         outPrin();
     }
 
@@ -52,18 +57,14 @@ public class InvocationConfig {
     }
 
     /**
-     * 初始化网络模块
+     * 配置服务暴露model
      */
-    private void initNetwork() {
-        new Network(leaderPort).start();
-    }
-
-    /**
-     * 初始化扫描
-     */
-    private void initScan() {
-        producerScan.init(this);
-        consumesScan.init(this);
+    private void initServiceModelConfig() {
+        //获得当前内网ip
+        producer.setLocalIp(IPUtils.getLocalIP());
+        producer.setName(invocationProperties.getName() + "-producer");
+        producer.setPort(invocationProperties.getPort());
+        consumes.setName(invocationProperties.getName() + "-consumes");
     }
 
     /**
@@ -75,7 +76,12 @@ public class InvocationConfig {
             Object object = applicationContext.getBean(beanNames[0]);
             EnableInvocationConfiguration enableInvocationConfiguration = object.getClass().getAnnotation(EnableInvocationConfiguration.class);
             String value = enableInvocationConfiguration.value();
-            leaderPort = enableInvocationConfiguration.leaderPort();
+            //leaderPort选择 配置文件优先
+            if (StringUtils.isEmpty(invocationProperties.getLeaderPort())) {
+                leaderPort = enableInvocationConfiguration.leaderPort();
+            } else {
+                leaderPort = invocationProperties.getLeaderPort();
+            }
             if (StringUtils.isEmpty(value)) {
                 consumes.setScanPath(object.getClass().getPackage().getName());
             } else {
@@ -85,15 +91,31 @@ public class InvocationConfig {
         }
     }
 
-
     /**
-     * 绑定ip
+     * 初始化扫描
      */
-    private void addressConfig() {
-        //获得当前内网ip
-        producer.setLocalIp(IPUtils.getLocalIP());
+    private void initScan() {
+        producerScan.init(this);
+        consumesScan.init(this);
     }
 
+    /**
+     * 初始化服务beanProxy
+     */
+    private void initBeanProxy() {
+        new BeanProxy(this);
+    }
+
+    /**
+     * 初始化网络模块
+     */
+    private void initNetwork() {
+        new Network(leaderPort).start();
+    }
+
+    /**
+     * 输出配置
+     */
     private void outPrin() {
         System.out.println("初始化invocation资源完成 配置输出：");
         verifyProducerJSON();

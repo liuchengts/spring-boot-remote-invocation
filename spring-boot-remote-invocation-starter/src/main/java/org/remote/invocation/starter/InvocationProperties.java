@@ -6,8 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+
+import java.io.Serializable;
 
 /**
  * 属性配置
@@ -20,9 +21,8 @@ import org.springframework.validation.annotation.Validated;
 @NoArgsConstructor
 @AllArgsConstructor
 @Validated
-@Component
 @ConfigurationProperties(prefix = "spring.invocation")
-public class InvocationProperties {
+public class InvocationProperties implements Serializable {
     /**
      * 名称
      */
@@ -34,6 +34,11 @@ public class InvocationProperties {
      */
     @NonNull
     Integer port;
+
+    /**
+     * leader通信端口
+     */
+    Integer leaderPort;
 
     /**
      * 是否注册为生产者

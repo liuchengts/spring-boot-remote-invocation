@@ -1,7 +1,5 @@
 package org.remote.invocation.starter.invoke;
 
-import org.remote.invocation.starter.InvocationProperties;
-import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.springframework.beans.BeansException;
@@ -26,6 +24,7 @@ import org.springframework.util.ObjectUtils;
  * @create 2018-06-04 15:21
  **/
 public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
+
     InvocationConfig invocationConfig;
     ApplicationContext applicationContext;
     private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
@@ -34,13 +33,8 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
     /**
      * 初始化
      */
-    public BeanProxy(ApplicationContext applicationContext, InvocationProperties invocationProperties) {
-        Producer producer = applicationContext.getBean(Producer.class);
-        Consumes consumes = applicationContext.getBean(Consumes.class);
-        producer.setName(invocationProperties.getName() + "-producer");
-        producer.setPort(invocationProperties.getPort());
-        consumes.setName(invocationProperties.getName() + "-consumes");
-        this.invocationConfig = new InvocationConfig(applicationContext);
+    public BeanProxy(InvocationConfig invocationConfig) {
+        this.invocationConfig = invocationConfig;
         this.applicationContext = invocationConfig.getApplicationContext();
     }
 
@@ -96,4 +90,6 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
         BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
         BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, registry);
     }
+
+
 }
