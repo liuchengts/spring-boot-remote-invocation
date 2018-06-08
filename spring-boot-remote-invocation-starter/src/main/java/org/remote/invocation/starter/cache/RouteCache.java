@@ -1,5 +1,7 @@
 package org.remote.invocation.starter.cache;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author liucheng
  * @create 2018-06-08 15:24
  **/
+@Slf4j
 public class RouteCache implements Serializable {
 
     private static class LazyHolder {
@@ -49,10 +52,12 @@ public class RouteCache implements Serializable {
         if (cache.containsKey(ipAndPort)) {
             ServiceRoute route = cache.get(ipAndPort);
             if (serviceRoute.getVersion() - route.getVersion() < 0) {
+                log.info("已存在更新版本的路由，不进行加入：key[" + ipAndPort + "]");
                 return;
             }
         }
         cache.put(ipAndPort, serviceRoute);
+        log.info("加入了一个路由：key[" + ipAndPort + "]");
     }
 
 }

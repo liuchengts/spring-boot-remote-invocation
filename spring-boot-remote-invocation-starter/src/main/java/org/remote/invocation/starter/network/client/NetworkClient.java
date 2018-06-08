@@ -5,15 +5,13 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author liucheng
@@ -44,14 +42,13 @@ public class NetworkClient extends Thread {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            p.addLast("ping", new IdleStateHandler(0, 4, 0, TimeUnit.SECONDS));
-                            p.addLast("decoder", new StringDecoder());
-                            p.addLast("encoder", new StringEncoder());
+                            //p.addLast("ping", new IdleStateHandler(0, 4, 0, TimeUnit.SECONDS));
+                            p.addLast("decoder", new ObjectDecoder(ClassResolvers.weakCachingConcurrentResolver(null)));
+                            p.addLast("encoder", new ObjectEncoder());
                             p.addLast(handler);
                         }
                     });
             ChannelFuture future = b.connect(ip, port).sync();
-            log.info("Client start at ：" + ip + ":" + port);
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);

@@ -62,8 +62,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         Long time = System.currentTimeMillis();
         try {
             Thread.sleep(HEARTBEAT_TIME);
-            ctx.write(HEARTBEAT + time);
-            ctx.flush();
+            ctx.writeAndFlush(HEARTBEAT + time);
         } catch (Exception e) {
             log.error("[" + name + "]心跳连接发送异常", e);
         }
@@ -78,12 +77,14 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public void sendMsg(Object msg) {
         try {
             if (ctx == null) {
+                log.info("消息加入待发送队列");
                 msgList.add(msg);
             } else {
                 ctx.channel().writeAndFlush(msg);
             }
         } catch (Exception e) {
             msgList.add(msg);
+            log.warn("发送异常，消息加入待发送队列", e);
         }
     }
 
