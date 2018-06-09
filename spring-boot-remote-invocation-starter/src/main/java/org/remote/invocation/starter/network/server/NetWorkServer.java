@@ -27,11 +27,11 @@ import java.util.concurrent.TimeUnit;
  **/
 @Data
 @Slf4j
-public class NetworkServer extends Thread {
+public class NetWorkServer extends Thread {
     int port;
-    NetworkServerHandler handler = new NetworkServerHandler();
+    NetWorkServerHandler handler = new NetWorkServerHandler();
 
-    public NetworkServer(int port) {
+    public NetWorkServer(int port) {
         this.port = port;
     }
 
@@ -55,10 +55,8 @@ public class NetworkServer extends Thread {
             ChannelFuture future = sbs.bind(port).sync();
             future.channel().closeFuture().sync();
         } catch (Exception e) {
-
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            throw new RuntimeException("创建服务端失败" + port, e);
         }
     }
 

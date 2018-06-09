@@ -14,7 +14,7 @@ import java.util.Date;
  * @create 2018-05-31 10:18
  **/
 @Slf4j
-public class NetworkClientHandler extends BaseHandler {
+public class NetWorkClientHandler extends BaseHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {

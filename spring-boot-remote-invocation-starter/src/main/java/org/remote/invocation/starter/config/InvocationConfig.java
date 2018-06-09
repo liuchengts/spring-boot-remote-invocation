@@ -10,7 +10,7 @@ import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.cache.ServiceRoute;
 import org.remote.invocation.starter.invoke.BeanProxy;
-import org.remote.invocation.starter.network.Network;
+import org.remote.invocation.starter.network.NetWork;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
@@ -116,7 +116,6 @@ public class InvocationConfig {
      * 初始化服务路由ServiceRoute
      */
     private void initServiceRoute() {
-        serviceRoute.setConsumes(consumes);
         serviceRoute.setProducer(producer);
     }
 
@@ -124,7 +123,7 @@ public class InvocationConfig {
      * 初始化网络模块
      */
     private void initNetwork() {
-        new Network(this).start();
+        new NetWork(this).start();
     }
 
     /**

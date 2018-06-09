@@ -2,11 +2,8 @@ package org.remote.invocation.starter.network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.cache.RouteCache;
@@ -24,8 +21,6 @@ import java.util.List;
 @Slf4j
 @Data
 public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
-    public static final ByteBuf HEARTBEAT_SEQUENCE = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("Heartbeat",
-            CharsetUtil.UTF_8));
     public ObjectMapper objectMapper = new ObjectMapper();
     public List<Object> msgList = new ArrayList<>(); //待处理的消息
     public ChannelHandlerContext ctx; //通讯连接上下文

@@ -19,12 +19,12 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Data
 @Slf4j
-public class NetworkClient extends Thread {
+public class NetWorkClient extends Thread {
     int port;
     String ip;
-    NetworkClientHandler handler = new NetworkClientHandler();
+    NetWorkClientHandler handler = new NetWorkClientHandler();
 
-    public NetworkClient(int port, String ip) {
+    public NetWorkClient(int port, String ip) {
         this.port = port;
         this.ip = ip;
     }

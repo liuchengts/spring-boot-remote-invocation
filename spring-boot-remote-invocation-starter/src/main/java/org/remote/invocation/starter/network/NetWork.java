@@ -3,8 +3,8 @@ package org.remote.invocation.starter.network;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.cache.ServiceRoute;
 import org.remote.invocation.starter.config.InvocationConfig;
-import org.remote.invocation.starter.network.client.NetworkClient;
-import org.remote.invocation.starter.network.server.NetworkServer;
+import org.remote.invocation.starter.network.client.NetWorkClient;
+import org.remote.invocation.starter.network.server.NetWorkServer;
 import org.remote.invocation.starter.utils.IPUtils;
 
 import java.util.Map;
@@ -18,14 +18,14 @@ import java.util.concurrent.*;
  * @create 2018-06-06 14:00
  **/
 @Slf4j
-public class Network extends Thread {
+public class NetWork extends Thread {
     InvocationConfig invocationConfig;
     int leaderPort;
     final static ExecutorService executor = Executors.newCachedThreadPool();
-    static Map<String, NetworkClient> mapNetworkClient = new ConcurrentHashMap<>();
-    NetworkServer networkLeaderServer;
+    static Map<String, NetWorkClient> mapNetworkClient = new ConcurrentHashMap<>();
+    NetWorkServer networkLeaderServer;
 
-    public Network(InvocationConfig invocationConfig) {
+    public NetWork(InvocationConfig invocationConfig) {
         this.invocationConfig = invocationConfig;
         this.leaderPort = invocationConfig.getLeaderPort();
     }
@@ -46,7 +46,7 @@ public class Network extends Thread {
      */
     public void leaderServerStart(int leaderPort) {
         try {
-            networkLeaderServer = new NetworkServer(leaderPort);
+            networkLeaderServer = new NetWorkServer(leaderPort);
             networkLeaderServer.start();
             while (true) {
                 if (networkLeaderServer.getState().equals(State.WAITING)) {
@@ -81,11 +81,11 @@ public class Network extends Thread {
             return;
         }
         try {
-            NetworkClient networkClient = new NetworkClient(leaderPort, ip);
-            networkClient.start();
+            NetWorkClient netWorkClient = new NetWorkClient(leaderPort, ip);
+            netWorkClient.start();
             while (true) {
-                if (networkClient.getState().equals(State.WAITING)) {
-                    mapNetworkClient.put(ip, networkClient);
+                if (netWorkClient.getState().equals(State.WAITING)) {
+                    mapNetworkClient.put(ip, netWorkClient);
                     return;
                 } else {
                     Thread.sleep(10);
