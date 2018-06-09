@@ -1,8 +1,6 @@
 package org.remote.invocation.starter.network.client;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.network.BaseHandler;
@@ -37,6 +35,7 @@ public class NetWorkClientHandler extends BaseHandler {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+        System.out.println(ctx);
         log.info("Client  停止时间是：" + new Date());
     }
 }

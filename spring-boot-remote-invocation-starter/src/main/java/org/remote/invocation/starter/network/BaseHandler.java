@@ -2,6 +2,7 @@ package org.remote.invocation.starter.network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Data;
@@ -20,6 +21,7 @@ import java.util.List;
  **/
 @Slf4j
 @Data
+@ChannelHandler.Sharable
 public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public ObjectMapper objectMapper = new ObjectMapper();
     public List<Object> msgList = new ArrayList<>(); //待处理的消息

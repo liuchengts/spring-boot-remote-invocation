@@ -29,10 +29,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class NetWorkServer extends Thread {
     int port;
-    NetWorkServerHandler handler = new NetWorkServerHandler();
+    NetWorkServerHandler handler;
 
     public NetWorkServer(int port) {
         this.port = port;
+        handler = new NetWorkServerHandler();
     }
 
     @Override

@@ -22,11 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 public class NetWorkClient extends Thread {
     int port;
     String ip;
-    NetWorkClientHandler handler = new NetWorkClientHandler();
+    NetWorkClientHandler handler;
 
     public NetWorkClient(int port, String ip) {
         this.port = port;
         this.ip = ip;
+        handler = new NetWorkClientHandler();
     }
 
     @Override
@@ -51,9 +52,10 @@ public class NetWorkClient extends Thread {
             ChannelFuture future = b.connect(ip, port).sync();
             future.channel().closeFuture().sync();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);
         } finally {
-            group.shutdownGracefully();
+            // group.shutdownGracefully();
         }
     }
 
