@@ -106,7 +106,7 @@ public class NetWork extends Thread {
     /**
      * 将本机leader发布出去
      *
-     * @param leaderPort 约定的leader端口
+     * @param leaderPort  约定的leader端口
      */
     private void publishLeader(int leaderPort) {
         Set<String> ipSet = IPUtils.getLocalIPs();
