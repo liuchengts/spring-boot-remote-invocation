@@ -65,25 +65,6 @@ public class ConsumesScan {
     }
 
     /**
-     * 代理资源注入
-     *
-     * @param aClass 要注入的class
-     * @param field  class需要远程实现的属性
-     * @return 返回成功或者失败
-     * @throws IllegalAccessException
-     */
-    private boolean wired(Class aClass, Field field) throws IllegalAccessException, InstantiationException {
-        Class<?> cla = field.getType();
-        if (!cla.isInterface()) {
-            return false;
-        }
-        field.setAccessible(true);
-        field.set(applicationContext.getBean(aClass), getProducerOBJ(cla.getName()));
-        field.setAccessible(false);
-        return true;
-    }
-
-    /**
      * 配置打印
      */
     public void outPrintConfig() {
@@ -97,14 +78,5 @@ public class ConsumesScan {
      */
     public Consumes getConsumes() {
         return invocationConfig.getConsumes();
-    }
-
-    /**
-     * 获得消费者对应的生产者实例
-     *
-     * @return
-     */
-    public Object getProducerOBJ(String serviceName) throws IllegalAccessException, InstantiationException {
-        return null;
     }
 }

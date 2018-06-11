@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -60,4 +61,6 @@ public class RouteCache implements Serializable {
         log.info("加入了一个路由：key[" + ipAndPort + "]");
     }
 
+    //interfaceClasss ,hostport,interfaceClasssImpl
+    static Map<Class, Map<String, Object>> projects = new ConcurrentHashMap<>();
 }
