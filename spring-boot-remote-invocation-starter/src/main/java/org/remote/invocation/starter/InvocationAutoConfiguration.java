@@ -1,6 +1,7 @@
 package org.remote.invocation.starter;
 
 import org.remote.invocation.starter.config.InvocationConfig;
+import org.remote.invocation.starter.invoke.BeanProxy;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -20,8 +21,6 @@ import org.springframework.context.annotation.*;
 @EnableConfigurationProperties(InvocationProperties.class)
 public class InvocationAutoConfiguration implements ApplicationContextAware {
 
-    @Autowired
-    InvocationProperties invocationProperties;
     ApplicationContext applicationContext;
 
     @Override
@@ -31,9 +30,10 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
 
     @Bean
     @ConditionalOnMissingBean
-    public InvocationConfig invocationConfig() {
-        return new InvocationConfig(applicationContext,invocationProperties);
+    public BeanProxy beanProxy() {
+        return new BeanProxy(applicationContext);
     }
+
 
 
 }

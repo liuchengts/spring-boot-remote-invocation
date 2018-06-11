@@ -34,13 +34,17 @@ public class ServiceRoute implements Serializable {
      * 生产者
      */
     Producer producer;
-    /**
-     * 消费者
-     */
-    Consumes consumes;
+//    /**
+//     * 消费者
+//     */
+//    Consumes consumes;
 
     /**
      * 版本
      */
     Long version = System.currentTimeMillis();
+
+    public static String createKey(String ip, Integer port) {
+        return ip + ":" + port;
+    }
 }

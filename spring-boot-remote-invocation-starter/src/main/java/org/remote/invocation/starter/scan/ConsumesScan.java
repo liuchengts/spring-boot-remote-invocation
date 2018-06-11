@@ -43,7 +43,7 @@ public class ConsumesScan {
                 Class aClass = ReflexUtils.loaderClass(path);
                 if (aClass != null) {
                     ServiceBean serviceBean = new ServiceBean();
-                    serviceBean.setObjectClass(aClass);
+                    serviceBean.setObjectClass(path);
                     Set<Class> interfacePaths = new HashSet<>();
                     Field[] fields = aClass.getDeclaredFields();
                     for (Field field : fields) {

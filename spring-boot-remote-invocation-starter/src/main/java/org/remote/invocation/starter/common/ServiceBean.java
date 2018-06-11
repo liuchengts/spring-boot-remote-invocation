@@ -22,9 +22,9 @@ import java.util.Set;
 public class ServiceBean implements Serializable {
 
     /**
-     * 服务class
+     * 服务classPath
      */
-    Class objectClass;
+    String objectClass;
     /**
      * 服务接口class
      */

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 服务消费者实体模型

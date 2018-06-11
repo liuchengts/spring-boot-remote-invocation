@@ -6,15 +6,22 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
+import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.cache.ServiceRoute;
 import org.remote.invocation.starter.invoke.BeanProxy;
+import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.network.NetWork;
 import org.remote.invocation.starter.scan.ConsumesScan;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.IPUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
@@ -25,9 +32,12 @@ import org.springframework.util.StringUtils;
  **/
 @Slf4j
 @Data
-public class InvocationConfig {
-
+@Component
+@EnableConfigurationProperties(InvocationProperties.class)
+public class InvocationConfig implements ApplicationListener {
+    @Autowired
     ApplicationContext applicationContext;
+    @Autowired
     InvocationProperties invocationProperties;
     ObjectMapper objectMapper = new ObjectMapper();
     Producer producer;
@@ -37,15 +47,14 @@ public class InvocationConfig {
     ServiceRoute serviceRoute;
     int leaderPort;
 
-    public InvocationConfig(ApplicationContext applicationContext, InvocationProperties invocationProperties) {
-        this.applicationContext = applicationContext;
-        this.invocationProperties = invocationProperties;
+    @Override
+    public void onApplicationEvent(ApplicationEvent applicationEvent) {
         getModel();
         initServiceModelConfig();
         initScanPath();
         initScan();
         initServiceRoute();
-        initBeanProxy();
+        initResourceWired();
         initNetwork();
         outPrin();
     }
@@ -70,7 +79,7 @@ public class InvocationConfig {
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
         consumes.setName(invocationProperties.getName() + "-consumes");
-        serviceRoute.setKey(producer.getLocalIp() + producer.getPort());
+        serviceRoute.setKey(ServiceRoute.createKey(producer.getLocalIp(), producer.getPort()));
     }
 
     /**
@@ -101,15 +110,7 @@ public class InvocationConfig {
      * 初始化扫描
      */
     private void initScan() {
-        producerScan.init(this);
         consumesScan.init(this);
-    }
-
-    /**
-     * 初始化服务beanProxy
-     */
-    private void initBeanProxy() {
-        new BeanProxy(this);
     }
 
     /**
@@ -117,7 +118,15 @@ public class InvocationConfig {
      */
     private void initServiceRoute() {
         serviceRoute.setProducer(producer);
-        serviceRoute.setConsumes(consumes);
+//        serviceRoute.setConsumes(consumes);
+    }
+
+    /**
+     * 初始化资源注入组件
+     */
+    private void initResourceWired() {
+        RouteCache.getInstance().initRouteCache(new ResourceWired(this));
+
     }
 
     /**
@@ -159,4 +168,6 @@ public class InvocationConfig {
             e.printStackTrace();
         }
     }
+
+
 }

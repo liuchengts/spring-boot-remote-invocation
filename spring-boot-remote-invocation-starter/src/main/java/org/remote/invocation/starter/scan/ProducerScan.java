@@ -9,6 +9,7 @@ import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -21,19 +22,18 @@ import java.util.*;
 @Scope
 @Component
 public class ProducerScan {
-    volatile InvocationConfig invocationConfig;
+    Producer producer;
 
     /**
      * 初始化
      */
-    public void init(InvocationConfig invocationConfig) {
-        this.invocationConfig = invocationConfig;
-        Producer producer = invocationConfig.getProducer();
-        String[] beanNames = invocationConfig.getApplicationContext().getBeanNamesForAnnotation(InvocationService.class);
+    public void init(ApplicationContext applicationContext) {
+        Producer producer = applicationContext.getBean(Producer.class);
+        String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationService.class);
         Map<String, ServiceBean> services = new HashMap<>();
         if (beanNames != null) {
             for (String beanPath : beanNames) {
-                services.put(beanPath, this.getServiceBean(beanPath, invocationConfig.getApplicationContext()));
+                services.put(beanPath, this.getServiceBean(beanPath, applicationContext));
             }
         }
         producer.setServices(services);
@@ -51,7 +51,7 @@ public class ProducerScan {
             Object object = applicationContext.getBean(beanPath);
             Class objClass = object.getClass();
             Class<?>[] interfaces = objClass.getInterfaces();
-            serviceBean.setObjectClass(objClass);
+            serviceBean.setObjectClass(objClass.getName());
             Set<Class> interfacePaths = new HashSet<>();
             Set<MethodBean> methodBeans = new HashSet<>();
             for (Class<?> inte : interfaces) {
@@ -80,13 +80,7 @@ public class ProducerScan {
      * @return
      */
     public Producer getProducer() {
-        return invocationConfig.getProducer();
+        return producer;
     }
 
-    /**
-     * 配置打印
-     */
-    public void outPrintConfig() {
-        invocationConfig.verifyProducerJSON();
-    }
 }

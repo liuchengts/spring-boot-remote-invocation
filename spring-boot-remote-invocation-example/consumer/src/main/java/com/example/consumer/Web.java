@@ -1,7 +1,6 @@
 package com.example.consumer;
 
 import com.caucho.hessian.client.HessianProxyFactory;
-import com.example.api.TestProducer2Service;
 import com.example.api.TestProducerService;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.scan.ConsumesScan;
@@ -20,16 +19,17 @@ import java.net.MalformedURLException;
 public class Web {
     @InvocationResource
     private TestProducerService testProducerService;
-//    @InvocationResource
+    //    @InvocationResource
 //    private TestProducer2Service testProducer2Service;
     @Autowired
     private ConsumesScan consumesScan;
-    @Autowired
-    private ProducerScan producerScan;
+//    @Autowired
+//    private ProducerScan producerScan;
 
     @RequestMapping("/hessian")
     public String hessian() {
         String url = "http://localhost:8080/TestProducerService";
+//        String url = "http://localhost:8080/testProducerService";
         HessianProxyFactory factory = new HessianProxyFactory();
         try {
             testProducerService = (TestProducerService) factory.create(TestProducerService.class, url);
@@ -41,11 +41,11 @@ public class Web {
     }
 
     @RequestMapping("/c")
-    public void d() {
+    public String d() {
         System.out.println("WEB层 测试资源获取========");
         consumesScan.outPrintConfig();
-        producerScan.outPrintConfig();
-        testProducerService.findOne(2l);
+//        producerScan.outPrintConfig();
+        return testProducerService.findOne(2l);
 //        testProducer2Service.find2One(2l);
     }
 

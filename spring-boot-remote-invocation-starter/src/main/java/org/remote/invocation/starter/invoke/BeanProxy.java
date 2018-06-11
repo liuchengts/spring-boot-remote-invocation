@@ -1,7 +1,9 @@
 package org.remote.invocation.starter.invoke;
 
+import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.common.Producer;
-import org.remote.invocation.starter.config.InvocationConfig;
+import org.remote.invocation.starter.scan.ProducerScan;
+import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -25,22 +27,25 @@ import org.springframework.util.ObjectUtils;
  **/
 public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
 
-    InvocationConfig invocationConfig;
     ApplicationContext applicationContext;
+    Producer producer;
+    ProducerScan producerScan;
     private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
     private BeanNameGenerator beanNameGenerator = new AnnotationBeanNameGenerator();
 
     /**
      * 初始化
      */
-    public BeanProxy(InvocationConfig invocationConfig) {
-        this.invocationConfig = invocationConfig;
-        this.applicationContext = invocationConfig.getApplicationContext();
+    public BeanProxy(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        producer = applicationContext.getBean(Producer.class);
+        producerScan = applicationContext.getBean(ProducerScan.class);
+        producerScan.init(applicationContext);
     }
+
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanDefinitionRegistry) throws BeansException {
-        Producer producer = invocationConfig.getProducer();
         producer.getServices().values().forEach(serviceBean -> {
             serviceBean.getInterfaceClasss().forEach(interfaceClass -> {
                 registerBean(beanDefinitionRegistry, "/" + interfaceClass.getSimpleName(), HessianServiceExporter.class);
@@ -50,27 +55,28 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
-        Producer producer = invocationConfig.getProducer();
         producer.getServices().values().forEach(serviceBean -> {
             serviceBean.getInterfaceClasss().forEach(interfaceClass -> {
                 BeanDefinition bd = configurableListableBeanFactory.getBeanDefinition("/" + interfaceClass.getSimpleName());
                 MutablePropertyValues mpv = bd.getPropertyValues();
                 try {
+                    Class cls = ReflexUtils.loaderClass(serviceBean.getObjectClass());
                     //先从spring中获取，获取不到就自己创建
-                    Object obj = applicationContext.getBean(serviceBean.getObjectClass());
+                    Object obj = applicationContext.getBean(cls);
                     if (ObjectUtils.isEmpty(obj)) {
-                        obj = serviceBean.getObjectClass().newInstance();
+                        obj = cls.newInstance();
                     }
                     mpv.addPropertyValue("service", obj);
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
                 mpv.addPropertyValue("serviceInterface", interfaceClass);
             });
         });
-
     }
 
     /**

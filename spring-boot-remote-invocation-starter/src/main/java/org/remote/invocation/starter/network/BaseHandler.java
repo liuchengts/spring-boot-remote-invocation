@@ -12,6 +12,8 @@ import org.remote.invocation.starter.cache.ServiceRoute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 客户端处理消息的base
@@ -32,6 +34,13 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public String name; //当前处理器的名称
 
     /**
+     * 推送路由缓存信息给所有的客户端
+     */
+    public void pushAllRouteCache() {
+        sendMsg(routeCache.getRouteCache());
+    }
+
+    /**
      * 处理接收到的消息
      *
      * @param msg 接收到的消息
@@ -41,15 +50,20 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof ServiceRoute) {
             //将接收到的路由消息放入路由缓存
             ServiceRoute route = (ServiceRoute) msg;
-            routeCache.addServiceRoute(route.getKey(), route);
+            routeCache.addServiceRoute(route);
+            //给所有客户端推送消息
+            pushAllRouteCache();
         } else if (msg instanceof String) {
             String m = (String) msg;
             if (m.startsWith(HEARTBEAT)) {
                 Long time = Long.valueOf(m.replace(HEARTBEAT, ""));
                 log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
-                receipt();
             }
+        } else if (msg instanceof ConcurrentHashMap) {
+            routeCache.updateRouteCache((Map<String, ServiceRoute>) msg);
         }
+        //继续保持心跳连接
+        receipt();
     }
 
     /**
@@ -59,7 +73,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         Long time = System.currentTimeMillis();
         try {
             Thread.sleep(HEARTBEAT_TIME);
-            ctx.writeAndFlush(HEARTBEAT + time);
+            ctx.writeAndFlush("[" + name + "]" + HEARTBEAT + time);
         } catch (Exception e) {
             log.error("[" + name + "]心跳连接发送异常", e);
         }
