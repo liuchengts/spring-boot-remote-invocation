@@ -25,10 +25,6 @@ import java.util.*;
 public class ConsumesScan {
     volatile InvocationConfig invocationConfig;
     volatile ApplicationContext applicationContext;
-    /**
-     * 接口class，接口impl远程调用路径集合
-     */
-    volatile Map<Class, Set<String>> routeCache = new HashMap<>();
 
     /**
      * 初始化
@@ -69,35 +65,6 @@ public class ConsumesScan {
     }
 
     /**
-     * 将远程的提供者加入到路由缓存中
-     *
-     * @param list 远程的提供者
-     */
-    public void initRouteCache(List<Producer> list) {
-        Consumes consumes = this.getConsumes();
-        for (Producer producer : list) {
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("http://");
-            buffer.append(producer.getLocalIp());
-            buffer.append(producer.getPort());
-            String dns = buffer.toString();
-            for (String key : producer.getServices().keySet()) {
-                //只需要当前消费者需要的生产者，无关的服务抛弃掉
-                if (consumes.getServices().containsKey(key)) {
-                    producer.getServices().get(key).getInterfaceClasss().forEach(interfaceClass -> {
-                        Set<String> urlSet = new HashSet<>();
-                        if (routeCache.containsKey(interfaceClass)) {
-                            urlSet = routeCache.get(interfaceClass);
-                        }
-                        urlSet.add(dns + "/" + interfaceClass.getSimpleName());
-                        routeCache.put(interfaceClass, urlSet);
-                    });
-                }
-            }
-        }
-    }
-
-    /**
      * 代理资源注入
      *
      * @param aClass 要注入的class
@@ -110,10 +77,9 @@ public class ConsumesScan {
         if (!cla.isInterface()) {
             return false;
         }
-        Object obj = applicationContext.getBean(aClass);
-        Object vobj = getProducerOBJ(cla.getName());
         field.setAccessible(true);
-        field.set(obj, vobj);
+        field.set(applicationContext.getBean(aClass), getProducerOBJ(cla.getName()));
+        field.setAccessible(false);
         return true;
     }
 

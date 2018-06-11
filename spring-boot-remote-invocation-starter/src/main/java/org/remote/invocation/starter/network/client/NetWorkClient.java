@@ -55,7 +55,7 @@ public class NetWorkClient extends Thread {
             e.printStackTrace();
             throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);
         } finally {
-            // group.shutdownGracefully();
+             group.shutdownGracefully();
         }
     }
 

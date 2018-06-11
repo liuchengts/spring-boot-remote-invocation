@@ -1,6 +1,7 @@
 package org.remote.invocation.starter.invoke;
 
 import com.caucho.hessian.client.HessianProxyFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.MalformedURLException;
 
@@ -36,4 +37,6 @@ public class HessianServiceHandle {
     public static String getUrl(Class interfaceClass, String ip, Integer port) {
         return "http://" + ip + ":" + port + "/" + interfaceClass.getSimpleName();
     }
+
+
 }

@@ -117,6 +117,7 @@ public class InvocationConfig {
      */
     private void initServiceRoute() {
         serviceRoute.setProducer(producer);
+        serviceRoute.setConsumes(consumes);
     }
 
     /**
