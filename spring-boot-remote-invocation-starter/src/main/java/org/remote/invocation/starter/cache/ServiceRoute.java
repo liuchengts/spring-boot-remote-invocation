@@ -34,11 +34,6 @@ public class ServiceRoute implements Serializable {
      * 生产者
      */
     Producer producer;
-//    /**
-//     * 消费者
-//     */
-//    Consumes consumes;
-
     /**
      * 版本
      */

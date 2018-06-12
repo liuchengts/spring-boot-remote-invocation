@@ -118,7 +118,6 @@ public class InvocationConfig implements ApplicationListener {
      */
     private void initServiceRoute() {
         serviceRoute.setProducer(producer);
-//        serviceRoute.setConsumes(consumes);
     }
 
     /**
