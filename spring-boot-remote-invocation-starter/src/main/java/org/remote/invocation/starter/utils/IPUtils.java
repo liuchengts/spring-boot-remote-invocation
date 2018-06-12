@@ -67,12 +67,17 @@ public class IPUtils {
      * @return 返回内网ip
      */
     public static String getLocalIP() {
+        //优先选择192.168段的地址
+        String strIp = "";
         for (String ip : getLocalIPList()) {
             if (isIntranetIp(ip)) {
-                return ip;
+                strIp = ip;
+                if (ip.startsWith("192.168.")) {
+                    return ip;
+                }
             }
         }
-        return "";
+        return strIp;
     }
 
     /**
@@ -136,11 +141,11 @@ public class IPUtils {
     }
 
     public static void main(String[] args) {
-        log.debug("外网地址：" + getInternetIP());
+//        log.debug("外网地址：" + getInternetIP());
         log.debug("内网地址：" + getLocalIP());
-        for (String ip : getLocalIPs()) {
-            log.debug(ip);
-        }
+//        for (String ip : getLocalIPs()) {
+//            log.debug(ip);
+//        }
     }
 
 }
