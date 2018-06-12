@@ -101,7 +101,7 @@ public class InvocationConfig {
             } else {
                 consumes.setScanPath(value);
             }
-            log.info("扫描起点：" + consumes.getScanPath());
+            log.debug("扫描起点：" + consumes.getScanPath());
         }
     }
 
@@ -138,7 +138,7 @@ public class InvocationConfig {
      * 输出配置
      */
     private void outPrin() {
-        log.info("配置输出：");
+        log.debug("配置输出：");
         verifyProducerJSON();
         verifyConsumesJSON();
     }
@@ -149,7 +149,7 @@ public class InvocationConfig {
     public void verifyProducerJSON() {
         try {
             String producerJson = objectMapper.writeValueAsString(producer);
-            log.info("producerJson:" + producerJson);
+            log.debug("producerJson:" + producerJson);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -161,7 +161,7 @@ public class InvocationConfig {
     public void verifyConsumesJSON() {
         try {
             String consumesJson = objectMapper.writeValueAsString(consumes);
-            log.info("consumesJson:" + consumesJson);
+            log.debug("consumesJson:" + consumesJson);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
