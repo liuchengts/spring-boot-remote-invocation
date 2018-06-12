@@ -31,9 +31,17 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public ChannelHandlerContext ctx; //通讯连接上下文
     public RouteCache routeCache = RouteCache.getInstance(); //路由缓存
     public String HEARTBEAT = "Heartbeat";
-    public Long HEARTBEAT_TIME = 3000l;// 心跳固定时长
+    public Long HEARTBEAT_TIME = 5000l;// 心跳固定时长
     public String name; //当前处理器的名称
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        this.ctx = ctx;
+        this.name = this.getClass().getSimpleName();
+        log.info("[" + name + "]启动" + ctx.channel().remoteAddress());
+        new Thread(this::sendQueue).start();
+        new Thread(this::receipt).start();
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
