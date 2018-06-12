@@ -38,7 +38,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) {
         this.ctx = ctx;
         this.name = this.getClass().getSimpleName();
-        log.info("[" + name + "]启动" + ctx.channel().remoteAddress());
+        log.debug("[" + name + "]启动" + ctx.channel().remoteAddress());
         new Thread(this::sendQueue).start();
         new Thread(this::receipt).start();
     }
@@ -70,7 +70,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             String m = (String) msg;
             if (m.startsWith(HEARTBEAT)) {
                 Long time = Long.valueOf(m.replace(HEARTBEAT, ""));
-                log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
+                log.debug("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
             }
         } else if (msg instanceof ConcurrentHashMap) {
             routeCache.updateRouteCache((Map<String, ServiceRoute>) msg);
@@ -88,7 +88,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 消息回执，保持心跳
      */
     public void receipt() {
-        log.info("[" + name + "]心跳连接线程启动");
+        log.debug("[" + name + "]心跳连接线程启动");
         while (true) {
             Long time = System.currentTimeMillis();
             try {
@@ -108,7 +108,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public void sendMsg(Object msg) {
         try {
             if (ctx == null) {
-                log.info("消息加入待发送队列");
+                log.debug("消息加入待发送队列");
                 msgList.add(msg);
             } else {
                 ctx.channel().writeAndFlush(msg);
@@ -138,7 +138,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 处理待发送队列
      */
     public void sendQueue() {
-        log.info("[" + name + "]待发送消息队列启动");
+        log.debug("[" + name + "]待发送消息队列启动");
         try {
             while (true) {
                 if (msgList.isEmpty()) {

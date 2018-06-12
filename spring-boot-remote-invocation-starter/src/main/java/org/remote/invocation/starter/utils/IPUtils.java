@@ -136,10 +136,10 @@ public class IPUtils {
     }
 
     public static void main(String[] args) {
-        log.info("外网地址：" + getInternetIP());
-        log.info("内网地址：" + getLocalIP());
+        log.debug("外网地址：" + getInternetIP());
+        log.debug("内网地址：" + getLocalIP());
         for (String ip : getLocalIPs()) {
-            log.info(ip);
+            log.debug(ip);
         }
     }
 

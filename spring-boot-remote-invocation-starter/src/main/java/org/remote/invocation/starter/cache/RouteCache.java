@@ -68,7 +68,7 @@ public class RouteCache implements Serializable {
         cacheMap.values().forEach(serviceRoute -> {
             addServiceRoute(serviceRoute);
         });
-
+        log.debug("批量更新路由完成");
     }
 
     /**
@@ -96,12 +96,12 @@ public class RouteCache implements Serializable {
         if (cache.containsKey(serviceRoute.getKey())) {
             ServiceRoute route = cache.get(serviceRoute.getKey());
             if (serviceRoute.getVersion() - route.getVersion() <= 0) {
-                log.info("已存在更新版本的路由，不进行加入：key[" + serviceRoute.getKey() + "]");
+                log.debug("已存在更新版本的路由，不进行加入：key[" + serviceRoute.getKey() + "]");
                 return;
             }
         }
         cache.put(serviceRoute.getKey(), serviceRoute);
-        log.info("加入了一个路由：key[" + serviceRoute.getKey() + "]");
+        log.debug("加入了一个路由：key[" + serviceRoute.getKey() + "]");
         //加入服务实例缓存
         resourceWired.getConsumes().getServices().values().forEach(serviceBean -> {
             serviceBean.getInterfaceClasss().forEach(interfaceClasss -> {
@@ -126,7 +126,7 @@ public class RouteCache implements Serializable {
             objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
             projects.put(interfaceClasss, objectMap);
             resourceWired.wiredConsumes(this);
-            log.info("加入了一个远程服务缓存： hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
+            log.debug("加入了一个远程服务缓存： hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
         } catch (MalformedURLException e) {
             log.error("根据路由获得代理对象失败 hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
         }

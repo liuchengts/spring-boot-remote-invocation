@@ -55,7 +55,7 @@ public class NetWork extends Thread {
                 }
             }
         } catch (Exception e) {
-            log.info("leader已存在");
+            log.debug("leader已存在");
         }
     }
 
@@ -75,7 +75,7 @@ public class NetWork extends Thread {
      */
     public void leaderClientStart(String ip, int leaderPort) {
         if (mapNetworkClient.containsKey(ip)) {
-            log.info(ip + ":" + leaderPort + " Client已存在");
+            log.debug(ip + ":" + leaderPort + " Client已存在");
             return;
         }
         try {
@@ -132,7 +132,7 @@ public class NetWork extends Thread {
             e.printStackTrace();
         }
         executor.shutdown();
-        log.info("publishLeader结果:" + (mapNetworkClient.size() - 1));
+        log.debug("publishLeader结果:" + (mapNetworkClient.size() - 1));
     }
 
     /**
