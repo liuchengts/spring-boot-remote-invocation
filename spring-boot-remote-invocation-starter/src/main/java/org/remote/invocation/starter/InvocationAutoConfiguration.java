@@ -29,4 +29,10 @@ public class InvocationAutoConfiguration implements ApplicationContextAware {
     public BeanProxy beanProxy() {
         return new BeanProxy(applicationContext);
     }
+
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public InvocationNotifier invocationNotifier() {
+//        return new InvocationNotifier();
+//    }
 }

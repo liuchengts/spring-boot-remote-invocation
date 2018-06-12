@@ -23,7 +23,6 @@ public class NetWork extends Thread {
     int leaderPort;
     final static ExecutorService executor = Executors.newCachedThreadPool();
     static Map<String, NetWorkClient> mapNetworkClient = new ConcurrentHashMap<>();
-    NetWorkServer networkLeaderServer;
 
     public NetWork(InvocationConfig invocationConfig) {
         this.invocationConfig = invocationConfig;
@@ -46,7 +45,7 @@ public class NetWork extends Thread {
      */
     public void leaderServerStart(int leaderPort) {
         try {
-            networkLeaderServer = new NetWorkServer(leaderPort);
+            NetWorkServer   networkLeaderServer = new NetWorkServer(leaderPort);
             networkLeaderServer.start();
             while (true) {
                 if (networkLeaderServer.getState().equals(State.WAITING)) {
@@ -67,7 +66,6 @@ public class NetWork extends Thread {
      */
     public void leaderClientLocalStart(int leaderPort) {
         leaderClientStart(IPUtils.getLocalIP(), leaderPort);
-        localHeartbeatStart();
     }
 
     /**
@@ -94,13 +92,6 @@ public class NetWork extends Thread {
         } catch (Exception e) {
             return;
         }
-    }
-
-    /**
-     * 本地客户端触发心跳发送->本地leader
-     */
-    private void localHeartbeatStart() {
-        mapNetworkClient.get(IPUtils.getLocalIP()).receipt();
     }
 
     /**

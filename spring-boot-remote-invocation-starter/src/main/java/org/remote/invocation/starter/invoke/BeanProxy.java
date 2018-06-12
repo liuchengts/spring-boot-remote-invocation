@@ -1,7 +1,7 @@
 package org.remote.invocation.starter.invoke;
 
-import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.event.InvocationEvent;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.beans.BeansException;
@@ -77,6 +77,16 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
                 mpv.addPropertyValue("serviceInterface", interfaceClass);
             });
         });
+
+        publishInvocationEvent();
+    }
+
+    /**
+     * 发布远程资源就绪事件
+     */
+    private void publishInvocationEvent() {
+        InvocationEvent invocationEvent = new InvocationEvent(applicationContext);
+        applicationContext.publishEvent(invocationEvent);
     }
 
     /**

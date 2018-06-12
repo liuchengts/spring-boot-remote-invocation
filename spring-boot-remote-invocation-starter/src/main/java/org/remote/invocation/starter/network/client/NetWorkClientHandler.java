@@ -13,6 +13,14 @@ import java.util.Date;
  **/
 @Slf4j
 public class NetWorkClientHandler extends BaseHandler {
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        this.ctx = ctx;
+        this.name = this.getClass().getSimpleName();
+        log.info("[" + name + "]启动" + ctx.channel().remoteAddress());
+        new Thread(this::sendQueue).start();
+        new Thread(this::receipt).start();
+    }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {

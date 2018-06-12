@@ -34,14 +34,6 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public Long HEARTBEAT_TIME = 3000l;// 心跳固定时长
     public String name; //当前处理器的名称
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        this.ctx = ctx;
-        this.name = this.getClass().getSimpleName();
-        log.info("[" + name + "]启动" + ctx.channel().remoteAddress());
-        new Thread(this::sendQueue).start();
-        new Thread(this::receipt).start();
-    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -52,13 +44,6 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         } finally {
             ReferenceCountUtil.release(msg);
         }
-    }
-
-    /**
-     * 推送路由缓存信息给所有的客户端
-     */
-    public void pushAllRouteCache() {
-        sendMsg(routeCache.getRouteCache());
     }
 
     /**
@@ -86,16 +71,25 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
+     * 推送路由缓存信息给所有的客户端
+     */
+    public void pushAllRouteCache() {
+        sendMsg(routeCache.getRouteCache());
+    }
+
+    /**
      * 消息回执，保持心跳
      */
     public void receipt() {
         log.info("[" + name + "]心跳连接线程启动");
-        Long time = System.currentTimeMillis();
-        try {
-            Thread.sleep(HEARTBEAT_TIME);
-            ctx.writeAndFlush("[" + name + "]" + HEARTBEAT + time);
-        } catch (Exception e) {
-            log.error("[" + name + "]心跳连接发送异常", e);
+        while (true) {
+            Long time = System.currentTimeMillis();
+            try {
+                Thread.sleep(HEARTBEAT_TIME);
+                ctx.writeAndFlush("[" + name + "]" + HEARTBEAT + time);
+            } catch (Exception e) {
+                log.error("[" + name + "]心跳连接发送异常", e);
+            }
         }
     }
 

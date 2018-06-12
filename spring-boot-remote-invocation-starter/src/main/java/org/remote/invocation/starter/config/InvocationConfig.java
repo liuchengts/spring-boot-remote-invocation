@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 @Data
 @Component
 @EnableConfigurationProperties(InvocationProperties.class)
-public class InvocationConfig implements ApplicationListener {
+public class InvocationConfig {
     @Autowired
     ApplicationContext applicationContext;
     @Autowired
@@ -47,8 +47,7 @@ public class InvocationConfig implements ApplicationListener {
     ServiceRoute serviceRoute;
     int leaderPort;
 
-    @Override
-    public void onApplicationEvent(ApplicationEvent applicationEvent) {
+    public void initInvocationConfig() {
         getModel();
         initServiceModelConfig();
         initScanPath();
@@ -139,7 +138,7 @@ public class InvocationConfig implements ApplicationListener {
      * 输出配置
      */
     private void outPrin() {
-        log.info("初始化invocation资源完成 配置输出：");
+        log.info("配置输出：");
         verifyProducerJSON();
         verifyConsumesJSON();
     }
