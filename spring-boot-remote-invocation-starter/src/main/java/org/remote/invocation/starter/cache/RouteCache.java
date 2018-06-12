@@ -95,7 +95,7 @@ public class RouteCache implements Serializable {
         }
         if (cache.containsKey(serviceRoute.getKey())) {
             ServiceRoute route = cache.get(serviceRoute.getKey());
-            if (serviceRoute.getVersion() - route.getVersion() < 0) {
+            if (serviceRoute.getVersion() - route.getVersion() <= 0) {
                 log.info("已存在更新版本的路由，不进行加入：key[" + serviceRoute.getKey() + "]");
                 return;
             }

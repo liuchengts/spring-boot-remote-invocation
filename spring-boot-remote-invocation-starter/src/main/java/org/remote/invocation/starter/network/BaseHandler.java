@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.cache.RouteCache;
@@ -32,6 +33,26 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public String HEARTBEAT = "Heartbeat";
     public Long HEARTBEAT_TIME = 3000l;// 心跳固定时长
     public String name; //当前处理器的名称
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        this.ctx = ctx;
+        this.name = this.getClass().getSimpleName();
+        log.info("[" + name + "]启动" + ctx.channel().remoteAddress());
+        new Thread(this::sendQueue).start();
+        new Thread(this::receipt).start();
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        try {
+            this.handlerMsg(msg);
+        } catch (Exception e) {
+            log.error("[" + name + "]消息处理异常", e);
+        } finally {
+            ReferenceCountUtil.release(msg);
+        }
+    }
 
     /**
      * 推送路由缓存信息给所有的客户端
@@ -62,14 +83,13 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         } else if (msg instanceof ConcurrentHashMap) {
             routeCache.updateRouteCache((Map<String, ServiceRoute>) msg);
         }
-        //继续保持心跳连接
-        receipt();
     }
 
     /**
      * 消息回执，保持心跳
      */
     public void receipt() {
+        log.info("[" + name + "]心跳连接线程启动");
         Long time = System.currentTimeMillis();
         try {
             Thread.sleep(HEARTBEAT_TIME);
@@ -77,7 +97,6 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         } catch (Exception e) {
             log.error("[" + name + "]心跳连接发送异常", e);
         }
-
     }
 
     /**
