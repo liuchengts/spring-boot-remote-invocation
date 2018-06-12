@@ -60,7 +60,6 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * @param msg 接收到的消息
      */
     public void handlerMsg(Object msg) throws Exception {
-        log.info("[" + name + "]收到消息:" + ctx.channel().remoteAddress() + "->msg :" + objToJson(msg));
         if (msg instanceof ServiceRoute) {
             //将接收到的路由消息放入路由缓存
             ServiceRoute route = (ServiceRoute) msg;
@@ -94,7 +93,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             Long time = System.currentTimeMillis();
             try {
                 Thread.sleep(HEARTBEAT_TIME);
-                ctx.writeAndFlush("[" + name + "]" + HEARTBEAT + time);
+                ctx.writeAndFlush(HEARTBEAT + time);
             } catch (Exception e) {
                 log.error("[" + name + "]心跳连接发送异常", e);
             }
