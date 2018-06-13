@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.cache.ServiceRoute;
+import org.remote.invocation.starter.config.InvocationConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +27,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @ChannelHandler.Sharable
 public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
+    public InvocationConfig invocationConfig;
     public ObjectMapper objectMapper = new ObjectMapper();
     public List<Object> msgList = new ArrayList<>(); //待处理的消息
     public ChannelHandlerContext ctx; //通讯连接上下文
     public RouteCache routeCache = RouteCache.getInstance(); //路由缓存
     public String HEARTBEAT = "Heartbeat";
-    public Long HEARTBEAT_TIME = 5000l;// 心跳固定时长
+    public Long HEARTBEAT_TIME = 10000l;// 心跳固定时长
+    public Long MAINTAIN_TIME = 3000l;//路由维护休眠时间
     public String name; //当前处理器的名称
 
     @Override
@@ -41,6 +44,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         log.debug("[" + name + "]启动" + ctx.channel().remoteAddress());
         new Thread(this::sendQueue).start();
         new Thread(this::receipt).start();
+        new Thread(this::maintain).start();
     }
 
     @Override
@@ -73,6 +77,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
                 log.debug("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
             }
         } else if (msg instanceof ConcurrentHashMap) {
+            //批量增加路由缓存
             routeCache.updateRouteCache((Map<String, ServiceRoute>) msg);
         }
     }
@@ -93,7 +98,9 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             Long time = System.currentTimeMillis();
             try {
                 Thread.sleep(HEARTBEAT_TIME);
-                ctx.writeAndFlush(HEARTBEAT + time);
+                if (ctx.channel().isActive()) {
+                    ctx.writeAndFlush(HEARTBEAT + time);
+                }
             } catch (Exception e) {
                 log.error("[" + name + "]心跳连接发送异常", e);
             }
@@ -111,7 +118,9 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
                 log.debug("消息加入待发送队列");
                 msgList.add(msg);
             } else {
-                ctx.channel().writeAndFlush(msg);
+                if (ctx.channel().isActive()) {
+                    ctx.channel().writeAndFlush(msg);
+                }
             }
         } catch (Exception e) {
             msgList.add(msg);
@@ -155,6 +164,23 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             }
         } catch (Exception e) {
             log.error("[" + name + "]处理消息队列异常", e);
+        }
+    }
+
+    /**
+     * 维护路由
+     */
+    public void maintain() {
+        log.debug("[" + name + "]路由维护线程启动");
+        while (true) {
+            try {
+                routeCache.checkRoute();
+                //移除之后进行广播
+                pushAllRouteCache();
+                Thread.sleep(MAINTAIN_TIME);
+            } catch (Exception e) {
+                log.error("[" + name + "]路由维护异常", e);
+            }
         }
     }
 }

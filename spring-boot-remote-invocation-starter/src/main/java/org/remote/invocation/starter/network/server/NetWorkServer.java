@@ -16,6 +16,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.remote.invocation.starter.config.InvocationConfig;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
@@ -31,9 +32,10 @@ public class NetWorkServer extends Thread {
     int port;
     NetWorkServerHandler handler;
 
-    public NetWorkServer(int port) {
+    public NetWorkServer(int port, InvocationConfig invocationConfig) {
         this.port = port;
         handler = new NetWorkServerHandler();
+        handler.invocationConfig = invocationConfig;
     }
 
     @Override

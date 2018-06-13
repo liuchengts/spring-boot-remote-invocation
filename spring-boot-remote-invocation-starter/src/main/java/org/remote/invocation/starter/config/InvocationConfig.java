@@ -46,6 +46,7 @@ public class InvocationConfig {
     ProducerScan producerScan;
     ServiceRoute serviceRoute;
     int leaderPort;
+    NetWork netWork;
 
     public void initInvocationConfig() {
         getModel();
@@ -131,7 +132,16 @@ public class InvocationConfig {
      * 初始化网络模块
      */
     private void initNetwork() {
-        new NetWork(this).start();
+        netWork = new NetWork(this);
+        netWork.start();
+    }
+
+    /**
+     * 初始化网络模块
+     */
+    public void restartNetwork() {
+        netWork.stop();
+        initNetwork();
     }
 
     /**

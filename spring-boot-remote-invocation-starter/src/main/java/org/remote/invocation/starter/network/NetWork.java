@@ -21,8 +21,8 @@ import java.util.concurrent.*;
 public class NetWork extends Thread {
     InvocationConfig invocationConfig;
     int leaderPort;
-    final static ExecutorService executor = Executors.newCachedThreadPool();
     static Map<String, NetWorkClient> mapNetworkClient = new ConcurrentHashMap<>();
+    NetWorkClient netWorkClientLocal;
 
     public NetWork(InvocationConfig invocationConfig) {
         this.invocationConfig = invocationConfig;
@@ -38,6 +38,13 @@ public class NetWork extends Thread {
     }
 
     /**
+     * 重新加载网络模块
+     */
+    public void restartNetWork() {
+        invocationConfig.restartNetwork();
+    }
+
+    /**
      * 创建leader
      *
      * @param leaderPort 端口
@@ -45,7 +52,7 @@ public class NetWork extends Thread {
      */
     public void leaderServerStart(int leaderPort) {
         try {
-            NetWorkServer   networkLeaderServer = new NetWorkServer(leaderPort);
+            NetWorkServer networkLeaderServer = new NetWorkServer(leaderPort, invocationConfig);
             networkLeaderServer.start();
             while (true) {
                 if (networkLeaderServer.getState().equals(State.WAITING)) {
@@ -55,7 +62,7 @@ public class NetWork extends Thread {
                 }
             }
         } catch (Exception e) {
-            log.debug("leader已存在");
+            log.info("leader已存在");
         }
     }
 
@@ -65,7 +72,9 @@ public class NetWork extends Thread {
      * @param leaderPort leader端口
      */
     public void leaderClientLocalStart(int leaderPort) {
-        leaderClientStart(IPUtils.getLocalIP(), leaderPort);
+        String localIp = IPUtils.getLocalIP();
+        leaderClientStart(localIp, leaderPort);
+        netWorkClientLocal = mapNetworkClient.get(localIp);
     }
 
     /**
@@ -79,7 +88,7 @@ public class NetWork extends Thread {
             return;
         }
         try {
-            NetWorkClient netWorkClient = new NetWorkClient(leaderPort, ip);
+            NetWorkClient netWorkClient = new NetWorkClient(leaderPort, ip, invocationConfig);
             netWorkClient.start();
             while (true) {
                 if (netWorkClient.getState().equals(State.WAITING)) {
@@ -97,9 +106,10 @@ public class NetWork extends Thread {
     /**
      * 将本机leader发布出去
      *
-     * @param leaderPort  约定的leader端口
+     * @param leaderPort 约定的leader端口
      */
     private void publishLeader(int leaderPort) {
+        ExecutorService executor = Executors.newCachedThreadPool();
         Set<String> ipSet = IPUtils.getLocalIPs();
         ipSet.remove(IPUtils.getLocalIP());
         try {

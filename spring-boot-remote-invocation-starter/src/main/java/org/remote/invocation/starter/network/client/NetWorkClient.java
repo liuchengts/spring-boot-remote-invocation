@@ -12,6 +12,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.remote.invocation.starter.config.InvocationConfig;
 
 /**
  * @author liucheng
@@ -24,10 +25,11 @@ public class NetWorkClient extends Thread {
     String ip;
     NetWorkClientHandler handler;
 
-    public NetWorkClient(int port, String ip) {
+    public NetWorkClient(int port, String ip, InvocationConfig invocationConfig) {
         this.port = port;
         this.ip = ip;
         handler = new NetWorkClientHandler();
+        handler.invocationConfig = invocationConfig;
     }
 
     @Override
@@ -55,7 +57,7 @@ public class NetWorkClient extends Thread {
             e.printStackTrace();
             throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);
         } finally {
-             group.shutdownGracefully();
+            group.shutdownGracefully();
         }
     }
 

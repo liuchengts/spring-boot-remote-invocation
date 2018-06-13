@@ -142,7 +142,7 @@ public class IPUtils {
 
     public static void main(String[] args) {
 //        log.debug("外网地址：" + getInternetIP());
-        log.debug("内网地址：" + getLocalIP());
+//        log.debug("内网地址：" + getLocalIP());
 //        for (String ip : getLocalIPs()) {
 //            log.debug(ip);
 //        }

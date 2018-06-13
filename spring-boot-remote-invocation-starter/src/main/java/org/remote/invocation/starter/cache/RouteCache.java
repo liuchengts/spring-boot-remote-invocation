@@ -1,19 +1,27 @@
 package org.remote.invocation.starter.cache;
 
 import lombok.extern.slf4j.Slf4j;
+import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.invoke.HessianServiceHandle;
 import org.remote.invocation.starter.invoke.ResourceWired;
+import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * 路由缓存
@@ -35,15 +43,12 @@ public class RouteCache implements Serializable {
         return LazyHolder.INSTANCE;
     }
 
-
-    //资源注入对象
-    ResourceWired resourceWired;
-
     //ipAndPort ,ServiceRoute
     static Map<String, ServiceRoute> cache = new ConcurrentHashMap<>();
-
     //interfaceClasss ,hostport,interfaceClasssImpl
     static Map<Class, Map<String, Object>> projects = new ConcurrentHashMap<>();
+    //资源注入对象
+    ResourceWired resourceWired;
 
     public void initRouteCache(ResourceWired resourceWired) {
         this.resourceWired = resourceWired;
@@ -59,7 +64,7 @@ public class RouteCache implements Serializable {
     }
 
     /**
-     * 批量更新路由缓存
+     * 批量更新路由缓存，这里只增加
      */
     public void updateRouteCache(Map<String, ServiceRoute> cacheMap) {
         if (cacheMap == null || cacheMap.isEmpty()) {
@@ -68,7 +73,7 @@ public class RouteCache implements Serializable {
         cacheMap.values().forEach(serviceRoute -> {
             addServiceRoute(serviceRoute);
         });
-        log.debug("批量更新路由完成");
+        log.info("批量更新路由完成");
     }
 
     /**
@@ -96,12 +101,16 @@ public class RouteCache implements Serializable {
         if (cache.containsKey(serviceRoute.getKey())) {
             ServiceRoute route = cache.get(serviceRoute.getKey());
             if (serviceRoute.getVersion() - route.getVersion() <= 0) {
-                log.debug("已存在更新版本的路由，不进行加入：key[" + serviceRoute.getKey() + "]");
+                log.info("已存在更新版本的路由，不进行加入：key[" + serviceRoute.getKey() + "]");
                 return;
             }
         }
+        //排除掉没有服务的路由
+        if (serviceRoute.getProducer().getServices().isEmpty()) {
+            return;
+        }
         cache.put(serviceRoute.getKey(), serviceRoute);
-        log.debug("加入了一个路由：key[" + serviceRoute.getKey() + "]");
+        log.info("加入了一个路由：key[" + serviceRoute.getKey() + "]");
         //加入服务实例缓存
         resourceWired.getConsumes().getServices().values().forEach(serviceBean -> {
             serviceBean.getInterfaceClasss().forEach(interfaceClasss -> {
@@ -126,7 +135,7 @@ public class RouteCache implements Serializable {
             objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
             projects.put(interfaceClasss, objectMap);
             resourceWired.wiredConsumes(this);
-            log.debug("加入了一个远程服务缓存： hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
+            log.info("加入了一个远程服务缓存： hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
         } catch (MalformedURLException e) {
             log.error("根据路由获得代理对象失败 hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
         }
@@ -149,5 +158,72 @@ public class RouteCache implements Serializable {
             return objectMap.values().iterator().next();
         }
         return null;
+    }
+
+
+    /**
+     * 检测路由是否可用
+     */
+    public void checkRoute() {
+        if (cache.size() <= 0) {
+            return;
+        }
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Set<ServiceRoute> routeSet = new HashSet<>(cache.values());
+        try {
+            final CountDownLatch cdOrder = new CountDownLatch(1);//将军
+            final CountDownLatch cdAnswer = new CountDownLatch(routeSet.size());//小兵 10000
+            for (ServiceRoute route : routeSet) {
+                Runnable runnable = () -> {
+                    try {
+                        cdOrder.await(); // 处于等待状态
+                        try {
+                            if (IPUtils.checkConnected(route.getProducer().getLocalIp(), route.getProducer().getPort())) {
+                                log.info("连通的连接" + route.getKey());
+                                routeSet.remove(route);
+                            }
+                        } catch (Exception e) {
+                            // XXX: handle exception
+                            return;
+                        }
+                        cdAnswer.countDown(); // 任务执行完毕，cdAnswer减1。
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                };
+                executor.execute(runnable);// 为线程池添加任务
+            }
+            cdOrder.countDown();//-1
+            cdAnswer.await();
+        } catch (Exception e) {
+            // XXX Auto-generated catch block
+            e.printStackTrace();
+        }
+        executor.shutdown();
+        //routeSet剩下的是需要从路由中移除的
+        log.info("需要移除的路由数量" + routeSet.size());
+        removeRouteCache(routeSet);
+    }
+
+    /**
+     * 移除路由信息
+     */
+    private void removeRouteCache(Set<ServiceRoute> routeSet) {
+        if (routeSet.isEmpty()) {
+            return;
+        }
+        routeSet.forEach(serviceRoute -> {
+            //移除路由
+            cache.remove(serviceRoute.getKey());
+            //移除远程对象
+            projects.values().forEach(map -> {
+                map.remove(serviceRoute.getKey());
+            });
+        });
+        //重新加载本地的远程资源
+        resourceWired.wiredConsumes(this);
+        Set<String> rmset = routeSet.stream().map(ServiceRoute::getKey).collect(Collectors.toSet());
+        log.info("清除无用的路由完成{}", rmset);
     }
 }
