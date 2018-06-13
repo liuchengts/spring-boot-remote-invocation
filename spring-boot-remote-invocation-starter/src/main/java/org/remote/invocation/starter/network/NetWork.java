@@ -1,7 +1,7 @@
 package org.remote.invocation.starter.network;
 
 import lombok.extern.slf4j.Slf4j;
-import org.remote.invocation.starter.cache.ServiceRoute;
+import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.network.client.NetWorkClient;
 import org.remote.invocation.starter.network.server.NetWorkServer;
@@ -23,25 +23,20 @@ public class NetWork extends Thread {
     int leaderPort;
     static Map<String, NetWorkClient> mapNetworkClient = new ConcurrentHashMap<>();
     NetWorkClient netWorkClientLocal;
+    NetWorkServer netWorkServerLeader;
 
     public NetWork(InvocationConfig invocationConfig) {
         this.invocationConfig = invocationConfig;
         this.leaderPort = invocationConfig.getLeaderPort();
     }
 
+
     @Override
     public void run() {
         leaderServerStart(leaderPort);
-        leaderClientLocalStart(leaderPort);
+        leaderClientLocalStart();
         publishLeader(leaderPort);
         regRoute();
-    }
-
-    /**
-     * 重新加载网络模块
-     */
-    public void restartNetWork() {
-        invocationConfig.restartNetwork();
     }
 
     /**
@@ -52,10 +47,10 @@ public class NetWork extends Thread {
      */
     public void leaderServerStart(int leaderPort) {
         try {
-            NetWorkServer networkLeaderServer = new NetWorkServer(leaderPort, invocationConfig);
-            networkLeaderServer.start();
+            netWorkServerLeader = new NetWorkServer(leaderPort, invocationConfig);
+            netWorkServerLeader.start();
             while (true) {
-                if (networkLeaderServer.getState().equals(State.WAITING)) {
+                if (netWorkServerLeader.getState().equals(State.WAITING)) {
                     return;
                 } else {
                     Thread.sleep(10);
@@ -67,11 +62,21 @@ public class NetWork extends Thread {
     }
 
     /**
-     * 创建本机客户端，连接到本地leader
-     *
-     * @param leaderPort leader端口
+     * 竞争leader
      */
-    public void leaderClientLocalStart(int leaderPort) {
+    public void seizeLeaderServer() {
+        leaderServerStart(leaderPort);
+        //告诉所有的远程leader，发来最新的路由信息
+        mapNetworkClient.values().forEach(client -> {
+            client.requestRouteCache();
+        });
+        log.info("leaderServer竞争完成" + System.currentTimeMillis());
+    }
+
+    /**
+     * 创建本机客户端，连接到本地leader
+     */
+    public void leaderClientLocalStart() {
         String localIp = IPUtils.getLocalIP();
         leaderClientStart(localIp, leaderPort);
         netWorkClientLocal = mapNetworkClient.get(localIp);
@@ -82,10 +87,10 @@ public class NetWork extends Thread {
      *
      * @param leaderPort leader端口
      */
-    public void leaderClientStart(String ip, int leaderPort) {
+    public boolean leaderClientStart(String ip, int leaderPort) {
         if (mapNetworkClient.containsKey(ip)) {
-            log.debug(ip + ":" + leaderPort + " Client已存在");
-            return;
+            log.info(ip + ":" + leaderPort + " Client已存在");
+            return true;
         }
         try {
             NetWorkClient netWorkClient = new NetWorkClient(leaderPort, ip, invocationConfig);
@@ -93,13 +98,13 @@ public class NetWork extends Thread {
             while (true) {
                 if (netWorkClient.getState().equals(State.WAITING)) {
                     mapNetworkClient.put(ip, netWorkClient);
-                    return;
+                    return true;
                 } else {
                     Thread.sleep(10);
                 }
             }
         } catch (Exception e) {
-            return;
+            return false;
         }
     }
 
@@ -153,5 +158,29 @@ public class NetWork extends Thread {
         mapNetworkClient.values().forEach(client -> {
             client.sendMsg(serviceRoute);
         });
+    }
+
+    /**
+     * 根据ip获得一个客户端
+     *
+     * @param ip ip
+     * @return 返回客户端
+     */
+    public NetWorkClient getMapNetworkClient(String ip) {
+        if (mapNetworkClient.containsKey(ip)) {
+            return mapNetworkClient.get(ip);
+        }
+        return null;
+    }
+
+    /**
+     * 根据id删除一个客户端缓存
+     *
+     * @param ip ip
+     */
+    public void removeMapNetworkClient(String ip) {
+        if (mapNetworkClient.containsKey(ip)) {
+            mapNetworkClient.remove(ip);
+        }
     }
 }

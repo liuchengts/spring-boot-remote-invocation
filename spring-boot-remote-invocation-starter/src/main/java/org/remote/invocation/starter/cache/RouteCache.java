@@ -1,19 +1,14 @@
 package org.remote.invocation.starter.cache;
 
 import lombok.extern.slf4j.Slf4j;
-import org.remote.invocation.starter.common.Producer;
-import org.remote.invocation.starter.common.ServiceBean;
-import org.remote.invocation.starter.config.InvocationConfig;
+import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.invoke.HessianServiceHandle;
 import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.utils.IPUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -179,7 +174,7 @@ public class RouteCache implements Serializable {
                         cdOrder.await(); // 处于等待状态
                         try {
                             if (IPUtils.checkConnected(route.getProducer().getLocalIp(), route.getProducer().getPort())) {
-                                log.info("连通的连接" + route.getKey());
+                                log.debug("连通的连接" + route.getKey());
                                 routeSet.remove(route);
                             }
                         } catch (Exception e) {
@@ -202,7 +197,7 @@ public class RouteCache implements Serializable {
         }
         executor.shutdown();
         //routeSet剩下的是需要从路由中移除的
-        log.info("需要移除的路由数量" + routeSet.size());
+        log.debug("需要移除的路由数量" + routeSet.size());
         removeRouteCache(routeSet);
     }
 

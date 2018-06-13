@@ -9,8 +9,7 @@ import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
 import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
-import org.remote.invocation.starter.cache.ServiceRoute;
-import org.remote.invocation.starter.invoke.BeanProxy;
+import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.network.NetWork;
 import org.remote.invocation.starter.scan.ConsumesScan;
@@ -19,8 +18,6 @@ import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -134,14 +131,6 @@ public class InvocationConfig {
     private void initNetwork() {
         netWork = new NetWork(this);
         netWork.start();
-    }
-
-    /**
-     * 初始化网络模块
-     */
-    public void restartNetwork() {
-        netWork.stop();
-        initNetwork();
     }
 
     /**

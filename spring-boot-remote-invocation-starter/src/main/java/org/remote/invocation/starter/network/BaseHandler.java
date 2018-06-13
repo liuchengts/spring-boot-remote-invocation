@@ -6,10 +6,11 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.Timer;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.cache.RouteCache;
-import org.remote.invocation.starter.cache.ServiceRoute;
+import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.config.InvocationConfig;
 
 import java.util.ArrayList;
@@ -27,12 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @ChannelHandler.Sharable
 public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
+    public Timer timer;
     public InvocationConfig invocationConfig;
     public ObjectMapper objectMapper = new ObjectMapper();
     public List<Object> msgList = new ArrayList<>(); //待处理的消息
     public ChannelHandlerContext ctx; //通讯连接上下文
-    public RouteCache routeCache = RouteCache.getInstance(); //路由缓存
+    public RouteCache routeCache = RouteCache.getInstance(); //服务路由缓存
     public String HEARTBEAT = "Heartbeat";
+    public String SEIZELEADER = "SeizeLeader";
     public Long HEARTBEAT_TIME = 10000l;// 心跳固定时长
     public Long MAINTAIN_TIME = 3000l;//路由维护休眠时间
     public String name; //当前处理器的名称
@@ -40,10 +43,9 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         this.ctx = ctx;
-        this.name = this.getClass().getSimpleName();
-        log.debug("[" + name + "]启动" + ctx.channel().remoteAddress());
+        this.name = this.getClass().getSimpleName() + ctx.channel().remoteAddress();
+        log.info("[" + name + "]启动");
         new Thread(this::sendQueue).start();
-        new Thread(this::receipt).start();
         new Thread(this::maintain).start();
     }
 
@@ -57,6 +59,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             ReferenceCountUtil.release(msg);
         }
     }
+
 
     /**
      * 处理接收到的消息
@@ -74,13 +77,18 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             String m = (String) msg;
             if (m.startsWith(HEARTBEAT)) {
                 Long time = Long.valueOf(m.replace(HEARTBEAT, ""));
-                log.debug("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
+                log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
+            } else if (m.startsWith(SEIZELEADER)) {
+                //请求回发当前服务器路由信息
+                log.info("收到回发路由请求");
+                pushAllRouteCache();
             }
         } else if (msg instanceof ConcurrentHashMap) {
             //批量增加路由缓存
             routeCache.updateRouteCache((Map<String, ServiceRoute>) msg);
         }
     }
+
 
     /**
      * 推送路由缓存信息给所有的客户端
@@ -93,17 +101,11 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 消息回执，保持心跳
      */
     public void receipt() {
-        log.debug("[" + name + "]心跳连接线程启动");
-        while (true) {
-            Long time = System.currentTimeMillis();
-            try {
-                Thread.sleep(HEARTBEAT_TIME);
-                if (ctx.channel().isActive()) {
-                    ctx.writeAndFlush(HEARTBEAT + time);
-                }
-            } catch (Exception e) {
-                log.error("[" + name + "]心跳连接发送异常", e);
-            }
+        Long time = System.currentTimeMillis();
+        try {
+            ctx.writeAndFlush(HEARTBEAT + time);
+        } catch (Exception e) {
+            log.error("[" + name + "]心跳连接发送异常", e);
         }
     }
 
@@ -115,7 +117,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public void sendMsg(Object msg) {
         try {
             if (ctx == null) {
-                log.debug("消息加入待发送队列");
+                log.info("消息加入待发送队列");
                 msgList.add(msg);
             } else {
                 if (ctx.channel().isActive()) {
@@ -147,7 +149,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 处理待发送队列
      */
     public void sendQueue() {
-        log.debug("[" + name + "]待发送消息队列启动");
+        log.info("[" + name + "]待发送消息队列启动");
         try {
             while (true) {
                 if (msgList.isEmpty()) {
@@ -171,7 +173,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 维护路由
      */
     public void maintain() {
-        log.debug("[" + name + "]路由维护线程启动");
+        log.info("[" + name + "]路由维护线程启动");
         while (true) {
             try {
                 routeCache.checkRoute();

@@ -10,9 +10,12 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.config.InvocationConfig;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author liucheng
@@ -24,6 +27,8 @@ public class NetWorkClient extends Thread {
     int port;
     String ip;
     NetWorkClientHandler handler;
+    ChannelFutureListener channelFutureListener;
+    Bootstrap bootstrap;
 
     public NetWorkClient(int port, String ip, InvocationConfig invocationConfig) {
         this.port = port;
@@ -36,8 +41,8 @@ public class NetWorkClient extends Thread {
     public void run() throws RuntimeException {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
-            Bootstrap b = new Bootstrap();
-            b.group(group)
+            bootstrap = new Bootstrap();
+            bootstrap.group(group)
                     .channel(NioSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .handler(new LoggingHandler(LogLevel.INFO))
@@ -45,20 +50,70 @@ public class NetWorkClient extends Thread {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            //p.addLast("ping", new IdleStateHandler(0, 4, 0, TimeUnit.SECONDS));
+                            p.addLast("ping", new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
                             p.addLast("decoder", new ObjectDecoder(ClassResolvers.weakCachingConcurrentResolver(null)));
                             p.addLast("encoder", new ObjectEncoder());
                             p.addLast(handler);
                         }
                     });
-            ChannelFuture future = b.connect(ip, port).sync();
-            future.channel().closeFuture().sync();
+            //设置TCP协议的属性
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+            bootstrap.option(ChannelOption.TCP_NODELAY, true);
+            bootstrap.option(ChannelOption.SO_TIMEOUT, 5000);
+            initChannelFutureListener();
+            doConnect();
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("创建客户端失败" + ip + ":" + port, e);
         } finally {
             group.shutdownGracefully();
         }
+    }
+
+    /**
+     * 重连的监听
+     */
+    private void initChannelFutureListener() {
+        channelFutureListener = new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture f) throws Exception {
+                if (f.isSuccess()) {
+                    log.info("重新连接服务器成功");
+                } else {
+                    log.info("重新连接服务器失败");
+                    //  3秒后重新连接
+                    restartConnect();
+                }
+            }
+        };
+    }
+
+    /**
+     * 发起连接
+     *
+     * @throws Exception
+     */
+    public void doConnect() throws Exception {
+        ChannelFuture future = bootstrap.connect(ip, port).sync();
+        future.addListener(channelFutureListener);
+        future.channel().closeFuture().sync();
+    }
+
+    /**
+     * 发起重连
+     *
+     * @throws Exception
+     */
+    public void restartConnect() throws Exception {
+        handler.ctx.channel().eventLoop().schedule(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    doConnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 3, TimeUnit.SECONDS);
     }
 
     /**
@@ -71,9 +126,9 @@ public class NetWorkClient extends Thread {
     }
 
     /**
-     * 发送心跳消息
+     * 请求所有远程服务器发回最新的路由缓存
      */
-    public void receipt() {
-        handler.receipt();
+    public void requestRouteCache() {
+        handler.sendMsg(handler.SEIZELEADER);
     }
 }

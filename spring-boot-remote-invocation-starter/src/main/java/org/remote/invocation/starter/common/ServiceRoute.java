@@ -1,4 +1,4 @@
-package org.remote.invocation.starter.cache;
+package org.remote.invocation.starter.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
