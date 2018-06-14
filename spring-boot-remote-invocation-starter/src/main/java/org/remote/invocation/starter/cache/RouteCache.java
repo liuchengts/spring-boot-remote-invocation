@@ -6,8 +6,6 @@ import org.remote.invocation.starter.invoke.HessianServiceHandle;
 import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.util.StringUtils;
-
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +23,7 @@ import java.util.stream.Collectors;
  * @create 2018-06-08 15:24
  **/
 @Slf4j
-public class RouteCache implements Serializable {
+public class RouteCache {
     private static class LazyHolder {
         private static final RouteCache INSTANCE = new RouteCache();
     }

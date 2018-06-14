@@ -1,16 +1,18 @@
 package com.example.producer;
 
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.remote.invocation.starter.network.point.service.impl.PotintProxyServiceImpl;
+import org.remote.invocation.starter.utils.ASMUtils;
+import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 @SpringBootApplication
 @EnableInvocationConfiguration
 public class ProducerApplication {
-    @Autowired
-    ApplicationContext applicationContext;
 
     public static void main(String[] args) {
         SpringApplication.run(ProducerApplication.class, args);
@@ -23,4 +25,5 @@ public class ProducerApplication {
 //        exporter.setServiceInterface(TestProducerService.class);
 //        return exporter;
 //    }
+
 }

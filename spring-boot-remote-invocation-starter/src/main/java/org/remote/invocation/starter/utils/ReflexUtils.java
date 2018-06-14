@@ -1,5 +1,6 @@
 package org.remote.invocation.starter.utils;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -43,24 +44,6 @@ public class ReflexUtils {
     public static ClassLoader getClassLoader() {
         return classLoader;
     }
-
-    /**
-     * 获得对象属性的值
-     */
-    @SuppressWarnings("unchecked")
-    public static Object invokeMethod(Object owner, String methodName, Object[] args) throws Exception {
-        Class<?> ownerClass = owner.getClass();
-        methodName = methodName.substring(0, 1).toUpperCase() + methodName.substring(1);
-        Method method = null;
-        try {
-            method = ownerClass.getMethod("get" + methodName);
-        } catch (SecurityException e) {
-        } catch (NoSuchMethodException e) {
-            return " can't find 'get" + methodName + "' method";
-        }
-        return method.invoke(owner);
-    }
-
 
     /**
      * 加载一个类
@@ -117,4 +100,63 @@ public class ReflexUtils {
         }
         return map;
     }
+
+    /**
+     * 代理执行公有方法（public）
+     *
+     * @param cla              方法所在的class
+     * @param publicMethodName 要执行的方法名称
+     * @param parameters       方法入参
+     * @param parameterTypes   方法参数类型
+     * @return 返回执行的结果
+     */
+    public static Object methodInvokePublic(Class cla, String publicMethodName, Object[] parameters, Class<?>... parameterTypes) {
+        try {
+            Object obj = cla.newInstance();
+            cla.getMethods();
+            Method method = cla.getMethod(publicMethodName, parameterTypes);
+            return method.invoke(obj, parameters);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 代理执行私有方法
+     *
+     * @param cla               方法所在的class
+     * @param privateMethodName 要执行的方法名称
+     * @param parameters        方法入参
+     * @param parameterTypes    方法参数类型
+     * @return 返回执行的结果
+     */
+    public static Object methodInvokePrivate(Class cla, String privateMethodName, Object[] parameters, Class<?>... parameterTypes) {
+        try {
+            Object obj = cla.newInstance();
+            cla.getMethods();
+            Method method = cla.getDeclaredMethod(privateMethodName, parameterTypes);
+            return method.invoke(obj, parameters);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 使用asm字节码动态生成class，并且执行父类的public修饰的方法（必须保证该class有继承关系，否则asm生成的是一个空的class）
+     *
+     * @param name              要创建的class名称 相当于 class.getName()
+     * @param interfaceClasss   要实现的的接口class，可以是null
+     * @param extendsClasssImpl 要继承的类class
+     * @param publicMethodName  要执行的公有方法名称
+     * @param parameters        方法参数
+     * @param parameterTypes    方法参数类型
+     * @return 返回执行结果
+     */
+    public static Object methodInvokeASM(String name, Set<Class> interfaceClasss, Class extendsClasssImpl, String publicMethodName, Object[] parameters, Class<?>... parameterTypes) {
+        Class cla = ASMUtils.createClass(name, interfaceClasss, extendsClasssImpl);
+        return ReflexUtils.methodInvokePublic(cla, publicMethodName, parameters, parameterTypes);
+    }
+
 }
