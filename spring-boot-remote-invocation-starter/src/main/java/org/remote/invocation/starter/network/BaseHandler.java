@@ -34,9 +34,8 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public List<Object> msgList = new ArrayList<>(); //待处理的消息
     public ChannelHandlerContext ctx; //通讯连接上下文
     public RouteCache routeCache = RouteCache.getInstance(); //服务路由缓存
-    public String HEARTBEAT = "Heartbeat";
-    public String SEIZELEADER = "SeizeLeader";
-    public Long HEARTBEAT_TIME = 10000l;// 心跳固定时长
+    public String HEARTBEAT = "Heartbeat";//指令：心跳连接
+    public String SEIZELEADER = "SeizeLeader"; //指令：所有通讯端口回发最新的路由缓存
     public Long MAINTAIN_TIME = 3000l;//路由维护休眠时间
     public String name; //当前处理器的名称
 
