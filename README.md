@@ -9,6 +9,8 @@
 * 序列化协议上使用hessian（往后可以扩展为其他方式的序列化），dubbo也支持hessian，但是dubbo支持更多种协议
 * 使用方式上与dubbo一致，监控体系目前远远不如dubbo完善
 * 去中心化，相比dubbo没有注册中心，由服务完成自我发现
+* 服务发生变动的情况下，暴露发现，路由更新、自我容错速度非常快，几乎是无延迟的完成
+* leader的选举非常简洁迅速（leader一挂掉，马上能选举出新的leader），能避免Zookeeper的leader选举方案在一些场景下带来的问题
 
 ## 去中心化的网络通信
 * 定义leaderPort角色：当服务启动时尝试自己在leaderPort上成为leader，一旦失败就降级为普通服务。只有当leaderPort相同的时候，才会在一个rpc组中，
