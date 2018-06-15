@@ -41,7 +41,7 @@ public class Web {
         System.out.println("WEB层 测试资源获取========");
         String res = testProducerService.findOne(2l);
         res = res + "======" + testProducer2Service.find2One(2l);
-        return res;
+        return res + "  time：" + System.currentTimeMillis();
     }
 
 
