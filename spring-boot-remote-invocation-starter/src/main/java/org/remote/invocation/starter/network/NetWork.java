@@ -6,6 +6,7 @@ import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.network.client.NetWorkClient;
 import org.remote.invocation.starter.network.server.NetWorkServer;
 import org.remote.invocation.starter.utils.IPUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +38,7 @@ public class NetWork extends Thread {
         leaderClientLocalStart();
         publishLeader(leaderPort);
         regRoute();
+
     }
 
     /**
@@ -117,6 +119,10 @@ public class NetWork extends Thread {
         ExecutorService executor = Executors.newCachedThreadPool();
         Set<String> ipSet = IPUtils.getLocalIPs();
         ipSet.remove(IPUtils.getLocalIP());
+        if (!StringUtils.isEmpty(invocationConfig.getNetSyncIp())) {
+            ipSet.add(invocationConfig.getNetSyncIp());
+            log.info("add ip " + invocationConfig.getNetSyncIp());
+        }
         try {
             final CountDownLatch cdOrder = new CountDownLatch(1);//将军
             final CountDownLatch cdAnswer = new CountDownLatch(ipSet.size());//小兵 10000
@@ -183,4 +189,6 @@ public class NetWork extends Thread {
             mapNetworkClient.remove(ip);
         }
     }
+
+
 }

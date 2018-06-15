@@ -2,10 +2,14 @@ package org.remote.invocation.starter.utils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 获得ip
@@ -140,8 +144,53 @@ public class IPUtils {
         return true;
     }
 
+    /**
+     * 获得外网ip
+     *
+     * @return 返回外网ip
+     */
+    public static String getNetIP() {
+        String ip = "";
+        String chinaz = "http://ip.chinaz.com";
+
+        StringBuilder inputLine = new StringBuilder();
+        String read = "";
+        URL url = null;
+        HttpURLConnection urlConnection = null;
+        BufferedReader in = null;
+        try {
+            url = new URL(chinaz);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            in = new BufferedReader( new InputStreamReader(urlConnection.getInputStream(),"UTF-8"));
+            while((read=in.readLine())!=null){
+                inputLine.append(read+"\r\n");
+            }
+            //System.out.println(inputLine.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            if(in!=null){
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        Pattern p = Pattern.compile("\\<dd class\\=\"fz24\">(.*?)\\<\\/dd>");
+        Matcher m = p.matcher(inputLine.toString());
+        if(m.find()){
+            String ipstr = m.group(1);
+            ip = ipstr;
+        }
+        return ip;
+    }
+
     public static void main(String[] args) {
-        log.debug("外网地址：" + getInternetIP());
+        log.debug("外网地址：" + getNetIP());
         log.debug("内网地址：" + getLocalIP());
 //        for (String ip : getLocalIPs()) {
 //            log.debug(ip);

@@ -1,9 +1,10 @@
 package org.remote.invocation.starter.utils;
 
-import jdk.internal.org.objectweb.asm.ClassWriter;
-import jdk.internal.org.objectweb.asm.MethodVisitor;
-import jdk.internal.org.objectweb.asm.Opcodes;
-import jdk.internal.org.objectweb.asm.Type;
+
+import org.springframework.asm.ClassWriter;
+import org.springframework.asm.MethodVisitor;
+import org.springframework.asm.Opcodes;
+import org.springframework.asm.Type;
 
 import java.util.HashSet;
 import java.util.Set;

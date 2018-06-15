@@ -39,7 +39,15 @@ public class ServiceRoute implements Serializable {
      */
     Long version = System.currentTimeMillis();
 
-    public static String createKey(String ip, Integer port) {
-        return ip + ":" + port;
+    /**
+     * 唯一key
+     *
+     * @param localIp 本地ip
+     * @param netIp   外网ip
+     * @param port    服务端口
+     * @return 返回key
+     */
+    public static String createKey(String localIp, String netIp, Integer port) {
+        return localIp + "@" + netIp + ":" + port;
     }
 }

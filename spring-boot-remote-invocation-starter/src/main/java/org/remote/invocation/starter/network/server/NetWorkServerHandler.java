@@ -15,6 +15,7 @@ import org.remote.invocation.starter.network.BaseHandler;
 @Slf4j
 @Data
 public class NetWorkServerHandler extends BaseHandler {
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof IdleStateEvent) {

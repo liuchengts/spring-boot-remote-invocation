@@ -104,14 +104,11 @@ public class NetWorkClient extends Thread {
      * @throws Exception
      */
     public void restartConnect() throws Exception {
-        handler.ctx.channel().eventLoop().schedule(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    doConnect();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        handler.ctx.channel().eventLoop().schedule(() -> {
+            try {
+                doConnect();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }, 3, TimeUnit.SECONDS);
     }

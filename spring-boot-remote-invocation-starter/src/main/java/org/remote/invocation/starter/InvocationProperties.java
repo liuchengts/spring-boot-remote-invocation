@@ -38,6 +38,11 @@ public class InvocationProperties implements Serializable {
     Integer port;
 
     /**
+     * 外网同步的ip
+     */
+    String netSyncIp;
+
+    /**
      * leader通信端口，此配置优先应用
      */
     Integer leaderPort;

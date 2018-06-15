@@ -40,6 +40,11 @@ public class Producer implements Serializable {
     String localIp;
 
     /**
+     * 外网ip
+     */
+    String netIp;
+
+    /**
      * 提供的服务名 service->ServiceBean
      */
     Map<String, ServiceBean> services;
@@ -49,4 +54,23 @@ public class Producer implements Serializable {
      */
     @Builder.Default
     Boolean isRegister = Boolean.TRUE;
+
+
+    /**
+     * 内网key
+     *
+     * @return 返回key
+     */
+    public String createLocalKey() {
+        return localIp + ":" + port;
+    }
+
+    /**
+     * 外网key
+     *
+     * @return 返回key
+     */
+    public String createNetKey() {
+        return netIp + ":" + port;
+    }
 }

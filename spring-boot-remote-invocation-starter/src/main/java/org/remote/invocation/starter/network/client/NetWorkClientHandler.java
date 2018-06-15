@@ -39,18 +39,21 @@ public class NetWorkClientHandler extends BaseHandler {
         InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
         ip = insocket.getAddress().getHostAddress();
         port = insocket.getPort();
-        log.info("Client " + ip + ":" + port + " 停止时间是：" + new Date());
-        System.out.println(IPUtils.checkConnected(ip, port));
-        //3s后每隔3s重新连接服务器,直到连接成功
+        log.info("Client " + ip + ":" + port + " 停止时间是：" + System.currentTimeMillis());
         new Thread(this::leaderClientStart).start();
         seizeLeaderServer();
-        System.out.println(IPUtils.checkConnected(ip, port));
     }
 
+    /**
+     * 重新竞争leader
+     */
     private void seizeLeaderServer() {
         invocationConfig.getNetWork().seizeLeaderServer();
     }
 
+    /**
+     * 等待3s后重新创建客户端，每隔3s重试一次
+     */
     private void leaderClientStart() {
         NetWork netWork = invocationConfig.getNetWork();
         netWork.removeMapNetworkClient(ip);

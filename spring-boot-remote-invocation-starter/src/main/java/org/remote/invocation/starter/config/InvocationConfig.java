@@ -43,6 +43,7 @@ public class InvocationConfig {
     ProducerScan producerScan;
     ServiceRoute serviceRoute;
     int leaderPort;
+    String netSyncIp;
     NetWork netWork;
 
     public void initInvocationConfig() {
@@ -65,6 +66,7 @@ public class InvocationConfig {
         consumesScan = applicationContext.getBean(ConsumesScan.class);
         producerScan = applicationContext.getBean(ProducerScan.class);
         serviceRoute = applicationContext.getBean(ServiceRoute.class);
+        netSyncIp = invocationProperties.getNetSyncIp();
     }
 
     /**
@@ -73,10 +75,11 @@ public class InvocationConfig {
     private void initServiceModelConfig() {
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
+        producer.setNetIp(IPUtils.getNetIP());
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
         consumes.setName(invocationProperties.getName() + "-consumes");
-        serviceRoute.setKey(ServiceRoute.createKey(producer.getLocalIp(), producer.getPort()));
+        serviceRoute.setKey(ServiceRoute.createKey(producer.getLocalIp(), producer.getNetIp(), producer.getPort()));
     }
 
     /**

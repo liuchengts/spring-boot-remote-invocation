@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.config.InvocationConfig;
+import org.remote.invocation.starter.network.client.NetWorkClientHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @ChannelHandler.Sharable
 public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
-    public Timer timer;
     public InvocationConfig invocationConfig;
     public ObjectMapper objectMapper = new ObjectMapper();
     public List<Object> msgList = new ArrayList<>(); //待处理的消息
@@ -45,7 +45,10 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         this.name = this.getClass().getSimpleName() + ctx.channel().remoteAddress();
         log.info("[" + name + "]启动");
         new Thread(this::sendQueue).start();
-        new Thread(this::maintain).start();
+        //客户端启动路由维护
+        if (name.startsWith(NetWorkClientHandler.class.getSimpleName())) {
+            new Thread(this::maintain).start();
+        }
     }
 
     @Override

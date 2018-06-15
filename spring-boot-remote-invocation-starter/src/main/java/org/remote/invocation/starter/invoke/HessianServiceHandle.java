@@ -64,5 +64,4 @@ public class HessianServiceHandle {
     public static String getServiceUrl(Class interfaceClass, String hostAndPort) {
         return "http://" + hostAndPort + "/" + interfaceClass.getSimpleName();
     }
-
 }

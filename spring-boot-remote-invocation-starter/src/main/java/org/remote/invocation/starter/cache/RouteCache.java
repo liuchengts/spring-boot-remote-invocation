@@ -1,11 +1,13 @@
 package org.remote.invocation.starter.cache;
 
 import lombok.extern.slf4j.Slf4j;
+import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.invoke.HessianServiceHandle;
 import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.util.StringUtils;
+
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,11 +38,17 @@ public class RouteCache {
         return LazyHolder.INSTANCE;
     }
 
-    //ipAndPort ,ServiceRoute
+    /**
+     * 服务网络路由 ipAndPort ,ServiceRoute
+     */
     static Map<String, ServiceRoute> cache = new ConcurrentHashMap<>();
-    //interfaceClasss ,hostport,interfaceClasssImpl
+    /***
+     * 服务对象缓存 interfaceClasss ,hostport,interfaceClasssImpl
+     */
     static Map<Class, Map<String, Object>> projects = new ConcurrentHashMap<>();
-    //资源注入对象
+    /***
+     * 服务资源的注入工具
+     */
     ResourceWired resourceWired;
 
     public void initRouteCache(ResourceWired resourceWired) {
@@ -107,7 +115,7 @@ public class RouteCache {
         //加入服务实例缓存
         resourceWired.getConsumes().getServices().values().forEach(serviceBean -> {
             serviceBean.getInterfaceClasss().forEach(interfaceClasss -> {
-                addProjects(interfaceClasss, serviceRoute.getKey());
+                addProjects(interfaceClasss, serviceRoute);
             });
         });
     }
@@ -117,26 +125,29 @@ public class RouteCache {
      * 增加一个服务缓存
      *
      * @param interfaceClasss 接口class
-     * @param hostAndPort     ip+端口
+     * @param serviceRoute    路由服务
      */
-    public void addProjects(Class interfaceClasss, String hostAndPort) {
+    public void addProjects(Class interfaceClasss, ServiceRoute serviceRoute) {
         Map<String, Object> objectMap = new ConcurrentHashMap<>();
         if (projects.containsKey(interfaceClasss)) {
             objectMap = projects.get(interfaceClasss);
         }
         try {
+            String hostAndPort = serviceRoute.getProducer().createLocalKey();
+            objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
+            hostAndPort = serviceRoute.getProducer().createNetKey();
             objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
             projects.put(interfaceClasss, objectMap);
             resourceWired.wiredConsumes(this);
-            log.info("加入了一个远程服务缓存： hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
+            log.info("加入了一个远程服务缓存： hostAndPort:" + serviceRoute.getKey() + " interfaceClasss:" + interfaceClasss.getName());
         } catch (MalformedURLException e) {
-            log.error("根据路由获得代理对象失败 hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
+            log.error("根据路由获得代理对象失败 hostAndPort:" + serviceRoute.getKey() + " interfaceClasss:" + interfaceClasss.getName());
         }
-
     }
 
     /**
      * 获得接口class对应的远程服务实例
+     * 网络负载及可用性检测
      *
      * @param interfaceClasss 接口class
      * @return 远程服务对象
@@ -147,12 +158,22 @@ public class RouteCache {
             if (objectMap.isEmpty()) {
                 return null;
             }
-            //TODO 这里进行负载均衡算法,暂时不实现
+            //这里进行服务可用性检测
+            objectMap.keySet().forEach(hostAndPort -> {
+                String ip = hostAndPort.substring(0, hostAndPort.indexOf(":"));
+                Integer port = Integer.valueOf(hostAndPort.substring(ip.length() + 1));
+                if (!IPUtils.checkConnected(ip, port)) {
+                    objectMap.remove(hostAndPort);
+                }
+            });
+            projects.put(interfaceClasss, objectMap);
+            if (objectMap.isEmpty()) {
+                return null;
+            }
             return objectMap.values().iterator().next();
         }
         return null;
     }
-
 
     /**
      * 检测路由是否可用
@@ -171,8 +192,9 @@ public class RouteCache {
                     try {
                         cdOrder.await(); // 处于等待状态
                         try {
-                            if (IPUtils.checkConnected(route.getProducer().getLocalIp(), route.getProducer().getPort())) {
-                                log.debug("连通的连接" + route.getKey());
+                            if (IPUtils.checkConnected(route.getProducer().getLocalIp(), route.getProducer().getPort())
+                                    || IPUtils.checkConnected(route.getProducer().getNetIp(), route.getProducer().getPort())) {
+                                log.info("连通的连接" + route.getKey());
                                 routeSet.remove(route);
                             }
                         } catch (Exception e) {
@@ -180,7 +202,6 @@ public class RouteCache {
                             return;
                         }
                         cdAnswer.countDown(); // 任务执行完毕，cdAnswer减1。
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -211,7 +232,8 @@ public class RouteCache {
             cache.remove(serviceRoute.getKey());
             //移除远程对象
             projects.values().forEach(map -> {
-                map.remove(serviceRoute.getKey());
+                map.remove(serviceRoute.getProducer().getLocalIp() + serviceRoute.getProducer().getPort());
+                map.remove(serviceRoute.getProducer().getNetIp() + serviceRoute.getProducer().getPort());
             });
         });
         //重新加载本地的远程资源

@@ -3,6 +3,7 @@ package com.example.producer.service.impl;
 import com.example.api.TestProducer2Service;
 import com.example.api.TestProducerService;
 import org.remote.invocation.starter.annotation.InvocationService;
+import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,24 +20,25 @@ public class TestProducerServiceImpl implements TestProducerService, TestProduce
     @Override
     public String findOne(Long id) {
         System.out.println("findOne");
-        return "findOne:" + id;
+        return "findOne:" + id + ": ip" + IPUtils.getNetIP();
     }
 
 
     @Override
     public String find2One(Long id) {
         System.out.println("find2One");
-        return "find2One:" + id;
+        return "find2One:" + id + ": ip" + IPUtils.getNetIP();
     }
+
     @Override
     public String update(Long id, Integer type) {
         System.out.println("update");
-        return "update:" + id;
+        return "update:" + id + ": ip" + IPUtils.getNetIP();
     }
 
     @Override
     public String update2(Long id, Integer type) {
         System.out.println("update2");
-        return "update2:" + id;
+        return "update2:" + id + ": ip" + IPUtils.getNetIP();
     }
 }

@@ -159,4 +159,11 @@ public class ReflexUtils {
         return ReflexUtils.methodInvokePublic(cla, publicMethodName, parameters, parameterTypes);
     }
 
+    public static void main(String[] args) {
+        String hostAndPort="192.168.10.57:3399";
+        String ip = hostAndPort.substring(0, hostAndPort.indexOf(":"));
+        Integer port = Integer.valueOf(hostAndPort.substring(ip.length() + 1));
+        System.out.println(ip);
+        System.out.println(port);
+    }
 }
