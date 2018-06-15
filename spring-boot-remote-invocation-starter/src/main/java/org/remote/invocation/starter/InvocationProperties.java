@@ -46,13 +46,4 @@ public class InvocationProperties implements Serializable {
      * 是否注册为生产者
      */
     Boolean isRegister = Boolean.TRUE;
-
-    /**
-     * 暴露的点 ip
-     */
-    String pointIp;
-    /**
-     * 暴露的点 端口
-     */
-    Integer pointPort;
 }
