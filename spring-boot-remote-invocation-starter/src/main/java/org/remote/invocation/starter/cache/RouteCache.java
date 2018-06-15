@@ -170,7 +170,17 @@ public class RouteCache {
             if (objectMap.isEmpty()) {
                 return null;
             }
-            return objectMap.values().iterator().next();
+            //优先选择本机内网服务
+            String localIp = resourceWired.getProducer().getLocalIp();
+            String netIp = resourceWired.getProducer().getNetIp();
+            Object obj = objectMap.values().iterator().next();
+            for (String key : objectMap.keySet()) {
+                if (key.startsWith(localIp) || key.startsWith(netIp)) {
+                    obj = objectMap.get(key);
+                    break;
+                }
+            }
+            return obj;
         }
         return null;
     }
