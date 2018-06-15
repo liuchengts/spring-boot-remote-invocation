@@ -38,7 +38,7 @@ public class InvocationProperties implements Serializable {
     Integer port;
 
     /**
-     * 外网同步的ip
+     * 外网同步的ip,支持多个ip，用英文逗号隔开
      */
     String netSyncIp;
 

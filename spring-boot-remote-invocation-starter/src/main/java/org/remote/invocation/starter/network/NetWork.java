@@ -120,8 +120,11 @@ public class NetWork extends Thread {
         Set<String> ipSet = IPUtils.getLocalIPs();
         ipSet.remove(IPUtils.getLocalIP());
         if (!StringUtils.isEmpty(invocationConfig.getNetSyncIp())) {
-            ipSet.add(invocationConfig.getNetSyncIp());
-            log.info("add ip " + invocationConfig.getNetSyncIp());
+            String[] ips = invocationConfig.getNetSyncIp().split(",");
+            for (String ip : ips) {
+                ipSet.add(ip);
+                log.info("add ip " + ip);
+            }
         }
         try {
             final CountDownLatch cdOrder = new CountDownLatch(1);//将军
