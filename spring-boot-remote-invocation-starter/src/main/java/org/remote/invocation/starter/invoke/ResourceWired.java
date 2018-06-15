@@ -3,6 +3,7 @@ package org.remote.invocation.starter.invoke;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.common.Consumes;
+import org.remote.invocation.starter.common.Producer;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,16 @@ public class ResourceWired {
     }
 
     /**
-     * 获得消费者者
+     * 获得生产者
+     *
+     * @return
+     */
+    public Producer getProducer() {
+        return invocationConfig.getProducer();
+    }
+
+    /**
+     * 获得消费者
      *
      * @return
      */
