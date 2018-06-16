@@ -1,5 +1,6 @@
 package org.remote.invocation.starter.invoke;
 
+import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.annotation.InvocationResource;
 import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.common.Consumes;
@@ -18,6 +19,7 @@ import java.lang.reflect.Field;
  * @author liucheng
  * @create 2018-06-11 11:42
  **/
+@Slf4j
 public class ResourceWired {
     ApplicationContext applicationContext;
     InvocationConfig invocationConfig;
@@ -66,14 +68,15 @@ public class ResourceWired {
             Field[] fields = aClass.getDeclaredFields();
             for (Field field : fields) {
                 if (field.isAnnotationPresent(InvocationResource.class)) {
-                    //TODO 这里可以加上参数实现是否检查远程服务
                     try {
                         Class<?> cla = field.getType();
                         if (!cla.isInterface()) {
                             return;
                         }
                         field.setAccessible(true);
-                        field.set(obj, routeCache.getServiceObjectImpl(cla));
+                        Object objImpl = routeCache.getServiceObjectImpl(cla);
+                        field.set(obj, objImpl);
+                        log.info("注入时间:" + System.currentTimeMillis() + " interface:" + cla.getSimpleName() + "  interfaceImpl:" + objImpl);
                         field.setAccessible(false);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();

@@ -52,7 +52,7 @@ public class InvocationConfig {
         initScanPath();
         initScan();
         initServiceRoute();
-        initResourceWired();
+        initRouteCache();
         initNetwork();
         outPrin();
     }
@@ -76,6 +76,7 @@ public class InvocationConfig {
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
         producer.setNetIp(IPUtils.getNetIP());
+        log.info("localIp:" + producer.getLocalIp() + " | netIp:" + producer.getNetIp() + " | netSyncIp:" + netSyncIp);
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
         consumes.setName(invocationProperties.getName() + "-consumes");
@@ -121,10 +122,10 @@ public class InvocationConfig {
     }
 
     /**
-     * 初始化资源注入组件
+     * 初始化路由组件
      */
-    private void initResourceWired() {
-        RouteCache.getInstance().initRouteCache(new ResourceWired(this));
+    private void initRouteCache() {
+        RouteCache.getInstance().initRouteCache(this);
 
     }
 

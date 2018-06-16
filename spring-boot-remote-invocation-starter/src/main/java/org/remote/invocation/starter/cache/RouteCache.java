@@ -2,7 +2,9 @@ package org.remote.invocation.starter.cache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.common.ServiceBean;
 import org.remote.invocation.starter.common.ServiceRoute;
+import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.invoke.HessianServiceHandle;
 import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.utils.IPUtils;
@@ -51,8 +53,8 @@ public class RouteCache {
      */
     ResourceWired resourceWired;
 
-    public void initRouteCache(ResourceWired resourceWired) {
-        this.resourceWired = resourceWired;
+    public void initRouteCache(InvocationConfig invocationConfig) {
+        this.resourceWired = new ResourceWired(invocationConfig);
     }
 
     /**
@@ -74,7 +76,6 @@ public class RouteCache {
         cacheMap.values().forEach(serviceRoute -> {
             addServiceRoute(serviceRoute);
         });
-        log.info("批量更新路由完成");
     }
 
     /**
@@ -102,7 +103,6 @@ public class RouteCache {
         if (cache.containsKey(serviceRoute.getKey())) {
             ServiceRoute route = cache.get(serviceRoute.getKey());
             if (serviceRoute.getVersion() - route.getVersion() <= 0) {
-                log.info("已存在更新版本的路由，不进行加入：key[" + serviceRoute.getKey() + "]");
                 return;
             }
         }
@@ -112,12 +112,20 @@ public class RouteCache {
         }
         cache.put(serviceRoute.getKey(), serviceRoute);
         log.info("加入了一个路由：key[" + serviceRoute.getKey() + "]");
+        //判断可用服务通讯是否正常
+        Set<String> ipSet = new HashSet<>();
+        ipSet.add(serviceRoute.getProducer().createLocalKey());
+        ipSet.add(serviceRoute.getProducer().createNetKey());
+        ipSet = checkRouteClassImpl(ipSet);
         //加入服务实例缓存
+        Set<String> finalIpSet = ipSet;
         resourceWired.getConsumes().getServices().values().forEach(serviceBean -> {
             serviceBean.getInterfaceClasss().forEach(interfaceClasss -> {
-                addProjects(interfaceClasss, serviceRoute);
+                addProjects(interfaceClasss, finalIpSet);
             });
         });
+        System.out.println(projects.size());
+        resourceWired.wiredConsumes(this);
     }
 
 
@@ -125,23 +133,29 @@ public class RouteCache {
      * 增加一个服务缓存
      *
      * @param interfaceClasss 接口class
-     * @param serviceRoute    路由服务
+     * @param ipSet           可用的ip和端口
      */
-    public void addProjects(Class interfaceClasss, ServiceRoute serviceRoute) {
+    public void addProjects(Class interfaceClasss, Set<String> ipSet) {
+        if (ipSet.isEmpty()) {
+            return;
+        }
         Map<String, Object> objectMap = new ConcurrentHashMap<>();
         if (projects.containsKey(interfaceClasss)) {
             objectMap = projects.get(interfaceClasss);
         }
-        try {
-            String hostAndPort = serviceRoute.getProducer().createLocalKey();
-            objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
-            hostAndPort = serviceRoute.getProducer().createNetKey();
-            objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
-            projects.put(interfaceClasss, objectMap);
-            resourceWired.wiredConsumes(this);
-            log.info("加入了一个远程服务缓存： hostAndPort:" + serviceRoute.getKey() + " interfaceClasss:" + interfaceClasss.getName());
-        } catch (MalformedURLException e) {
-            log.error("根据路由获得代理对象失败 hostAndPort:" + serviceRoute.getKey() + " interfaceClasss:" + interfaceClasss.getName());
+        for (String hostAndPort : ipSet) {
+            try {
+                objectMap.put(hostAndPort, HessianServiceHandle.getHessianService(interfaceClasss, hostAndPort));
+                log.info(interfaceClasss.getSimpleName() + "加入" + hostAndPort);
+                projects.put(interfaceClasss, objectMap);
+                log.info("加入了一个远程服务缓存： hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
+            } catch (MalformedURLException e) {
+                log.error("根据路由获得代理对象失败 hostAndPort:" + hostAndPort + " interfaceClasss:" + interfaceClasss.getName());
+            }
+        }
+        log.info(System.currentTimeMillis() + "路由情况 interfaceClasss:" + interfaceClasss.getName());
+        for (String key : objectMap.keySet()) {
+            log.info(key + " | " + objectMap.get(key));
         }
     }
 
@@ -158,29 +172,26 @@ public class RouteCache {
             if (objectMap.isEmpty()) {
                 return null;
             }
-            //这里进行服务可用性检测
-            objectMap.keySet().forEach(hostAndPort -> {
-                String ip = hostAndPort.substring(0, hostAndPort.indexOf(":"));
-                Integer port = Integer.valueOf(hostAndPort.substring(ip.length() + 1));
-                if (!IPUtils.checkConnected(ip, port)) {
-                    objectMap.remove(hostAndPort);
-                }
-            });
-            projects.put(interfaceClasss, objectMap);
-            if (objectMap.isEmpty()) {
-                return null;
-            }
             //优先选择本机内网服务
             String localIp = resourceWired.getProducer().getLocalIp();
             String netIp = resourceWired.getProducer().getNetIp();
-            Object obj = objectMap.values().iterator().next();
+            Object objDefault = null;
+            Object objNet = null;
             for (String key : objectMap.keySet()) {
-                if (key.startsWith(localIp) || key.startsWith(netIp)) {
-                    obj = objectMap.get(key);
+                if (key.startsWith(localIp)) {
+                    objDefault = objectMap.get(key);
+                    log.info(interfaceClasss.getSimpleName() + "选择本地服务实例=====key:" + key);
                     break;
+                } else if (key.startsWith(netIp)) {
+                    objNet = objectMap.get(key);
                 }
             }
-            return obj;
+            if (objDefault == null && objNet == null) {
+                objDefault = objectMap.values().iterator().next();
+            } else if (objDefault == null && objNet != null) {
+                objDefault = objNet;
+            }
+            return objDefault;
         }
         return null;
     }
@@ -204,7 +215,6 @@ public class RouteCache {
                         try {
                             if (IPUtils.checkConnected(route.getProducer().getLocalIp(), route.getProducer().getPort())
                                     || IPUtils.checkConnected(route.getProducer().getNetIp(), route.getProducer().getPort())) {
-                                log.info("连通的连接" + route.getKey());
                                 routeSet.remove(route);
                             }
                         } catch (Exception e) {
@@ -251,4 +261,44 @@ public class RouteCache {
         Set<String> rmset = routeSet.stream().map(ServiceRoute::getKey).collect(Collectors.toSet());
         log.info("清除无用的路由完成{}", rmset);
     }
+
+    /**
+     * 检测路由是否可用
+     */
+    private Set<String> checkRouteClassImpl(Set<String> ipSet) {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        try {
+            final CountDownLatch cdOrder = new CountDownLatch(1);//将军
+            final CountDownLatch cdAnswer = new CountDownLatch(ipSet.size());//小兵 10000
+            for (String hostAndPort : ipSet) {
+                Runnable runnable = () -> {
+                    try {
+                        cdOrder.await(); // 处于等待状态
+                        try {
+                            String ip = hostAndPort.substring(0, hostAndPort.indexOf(":"));
+                            Integer prot = Integer.valueOf(hostAndPort.substring(ip.length() + 1));
+                            if (IPUtils.checkConnected(ip, prot)) {
+                                ipSet.remove(hostAndPort);
+                            }
+                        } catch (Exception e) {
+                            // XXX: handle exception
+                            return;
+                        }
+                        cdAnswer.countDown(); // 任务执行完毕，cdAnswer减1。
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                };
+                executor.execute(runnable);// 为线程池添加任务
+            }
+            cdOrder.countDown();//-1
+            cdAnswer.await();
+        } catch (Exception e) {
+            // XXX Auto-generated catch block
+            e.printStackTrace();
+        }
+        executor.shutdown();
+        return ipSet;
+    }
 }
+

@@ -20,25 +20,25 @@ public class TestProducerServiceImpl implements TestProducerService, TestProduce
     @Override
     public String findOne(Long id) {
         System.out.println("findOne");
-        return "findOne:" + id + ": ip" + IPUtils.getNetIP();
+        return "findOne" + ": ip" + IPUtils.getNetIP();
     }
 
 
     @Override
     public String find2One(Long id) {
         System.out.println("find2One");
-        return "find2One:" + id + ": ip" + IPUtils.getNetIP();
+        return "find2One" + ": ip" + IPUtils.getNetIP();
     }
 
     @Override
     public String update(Long id, Integer type) {
         System.out.println("update");
-        return "update:" + id + ": ip" + IPUtils.getNetIP();
+        return "update:" + ": ip" + IPUtils.getNetIP();
     }
 
     @Override
     public String update2(Long id, Integer type) {
         System.out.println("update2");
-        return "update2:" + id + ": ip" + IPUtils.getNetIP();
+        return "update2:" + ": ip" + IPUtils.getNetIP();
     }
 }
