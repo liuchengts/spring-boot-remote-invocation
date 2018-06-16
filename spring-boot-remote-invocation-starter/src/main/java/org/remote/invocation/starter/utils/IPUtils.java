@@ -132,7 +132,7 @@ public class IPUtils {
     public static boolean checkConnected(String ip, Integer leaderPort) {
         Socket socket = new Socket();
         try {
-            socket.connect(new InetSocketAddress(ip, leaderPort), 5);
+            socket.connect(new InetSocketAddress(ip, leaderPort), 15);
         } catch (IOException e) {
             return false;
         } finally {
@@ -192,6 +192,7 @@ public class IPUtils {
     public static void main(String[] args) {
         log.debug("外网地址：" + getNetIP());
         log.debug("内网地址：" + getLocalIP());
+        System.out.println(IPUtils.checkConnected("118.25.41.63", 3399));
 //        for (String ip : getLocalIPs()) {
 //            log.debug(ip);
 //        }

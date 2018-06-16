@@ -263,7 +263,10 @@ public class RouteCache {
     }
 
     /**
-     * 检测路由是否可用
+     * 检查暴露服务的通讯地址是否可用
+     *
+     * @param ipSet ip+端口的集合
+     * @return 返回可用的集合
      */
     private Set<String> checkRouteClassImpl(Set<String> ipSet) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -277,7 +280,7 @@ public class RouteCache {
                         try {
                             String ip = hostAndPort.substring(0, hostAndPort.indexOf(":"));
                             Integer prot = Integer.valueOf(hostAndPort.substring(ip.length() + 1));
-                            if (IPUtils.checkConnected(ip, prot)) {
+                            if (!IPUtils.checkConnected(ip, prot)) {
                                 ipSet.remove(hostAndPort);
                             }
                         } catch (Exception e) {
