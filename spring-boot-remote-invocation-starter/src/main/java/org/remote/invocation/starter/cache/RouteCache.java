@@ -124,7 +124,6 @@ public class RouteCache {
                 addProjects(interfaceClasss, finalIpSet);
             });
         });
-        System.out.println(projects.size());
         resourceWired.wiredConsumes(this);
     }
 
@@ -199,9 +198,9 @@ public class RouteCache {
     /**
      * 检测路由是否可用
      */
-    public void checkRoute() {
+    public boolean checkRoute() {
         if (cache.size() <= 0) {
-            return;
+            return false;
         }
         ExecutorService executor = Executors.newCachedThreadPool();
         Set<ServiceRoute> routeSet = new HashSet<>(cache.values());
@@ -238,6 +237,7 @@ public class RouteCache {
         //routeSet剩下的是需要从路由中移除的
         log.debug("需要移除的路由数量" + routeSet.size());
         removeRouteCache(routeSet);
+        return routeSet.size() > 0;
     }
 
     /**

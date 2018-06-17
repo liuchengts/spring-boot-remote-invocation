@@ -1,13 +1,11 @@
 package org.remote.invocation.starter.network;
 
 import lombok.extern.slf4j.Slf4j;
-import org.remote.invocation.starter.common.ServiceRoute;
 import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.network.client.NetWorkClient;
 import org.remote.invocation.starter.network.server.NetWorkServer;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.util.StringUtils;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -37,8 +35,6 @@ public class NetWork extends Thread {
         leaderServerStart(leaderPort);
         leaderClientLocalStart();
         publishLeader(leaderPort);
-        regRoute();
-
     }
 
     /**
@@ -100,6 +96,8 @@ public class NetWork extends Thread {
             while (true) {
                 if (netWorkClient.getState().equals(State.WAITING)) {
                     mapNetworkClient.put(ip, netWorkClient);
+                    netWorkClient.sendMsg(invocationConfig.getServiceRoute());
+                    log.info("向" + ip + ":" + leaderPort + "发送本地路由成功");
                     return true;
                 } else {
                     Thread.sleep(10);
@@ -159,15 +157,6 @@ public class NetWork extends Thread {
         log.debug("publishLeader结果:" + (mapNetworkClient.size() - 1));
     }
 
-    /**
-     * 将本地路由信息推送推送到所有leader
-     */
-    private void regRoute() {
-        ServiceRoute serviceRoute = invocationConfig.getServiceRoute();
-        mapNetworkClient.values().forEach(client -> {
-            client.sendMsg(serviceRoute);
-        });
-    }
 
     /**
      * 根据ip获得一个客户端

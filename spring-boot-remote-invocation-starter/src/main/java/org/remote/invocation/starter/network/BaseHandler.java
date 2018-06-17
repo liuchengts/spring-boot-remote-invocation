@@ -79,7 +79,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             String m = (String) msg;
             if (m.startsWith(HEARTBEAT)) {
                 Long time = Long.valueOf(m.replace(HEARTBEAT, ""));
-                log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
+//                log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
             } else if (m.startsWith(SEIZELEADER)) {
                 //请求回发当前服务器路由信息
                 log.info("收到回发路由请求");
@@ -96,7 +96,11 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 推送路由缓存信息给所有的客户端
      */
     public void pushAllRouteCache() {
-        sendMsg(routeCache.getRouteCache());
+        Map map = routeCache.getRouteCache();
+        if (!map.isEmpty()) {
+            sendMsg(map);
+            log.info("路由广播");
+        }
     }
 
     /**
@@ -122,9 +126,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
                 log.info("消息加入待发送队列");
                 msgList.add(msg);
             } else {
-                if (ctx.channel().isActive()) {
-                    ctx.channel().writeAndFlush(msg);
-                }
+                ctx.channel().writeAndFlush(msg);
             }
         } catch (Exception e) {
             msgList.add(msg);
@@ -178,9 +180,10 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
         log.info("[" + name + "]路由维护线程启动");
         while (true) {
             try {
-                routeCache.checkRoute();
-                //移除之后进行广播
-                pushAllRouteCache();
+                if (routeCache.checkRoute()) {
+                    //移除之后进行广播
+                    pushAllRouteCache();
+                }
                 Thread.sleep(MAINTAIN_TIME);
             } catch (Exception e) {
                 log.error("[" + name + "]路由维护异常", e);

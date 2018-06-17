@@ -15,13 +15,19 @@ import org.remote.invocation.starter.network.BaseHandler;
 @Slf4j
 @Data
 public class NetWorkServerHandler extends BaseHandler {
+    private int loss_connect_time = 0;
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE) {
-                receipt();
+                loss_connect_time++;
+                if (loss_connect_time > 2) {
+//                    log.info("关闭不活跃的channel");
+                    //ctx.channel().close();
+                    receipt();
+                }
             }
         }
     }

@@ -132,7 +132,7 @@ public class IPUtils {
     public static boolean checkConnected(String ip, Integer leaderPort) {
         Socket socket = new Socket();
         try {
-            socket.connect(new InetSocketAddress(ip, leaderPort));
+            socket.connect(new InetSocketAddress(ip, leaderPort),120);
         } catch (IOException e) {
             return false;
         } finally {

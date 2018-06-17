@@ -50,7 +50,7 @@ public class NetWorkClient extends Thread {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            p.addLast("ping", new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
+                            p.addLast("ping", new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
                             p.addLast("decoder", new ObjectDecoder(ClassResolvers.weakCachingConcurrentResolver(null)));
                             p.addLast("encoder", new ObjectEncoder());
                             p.addLast(handler);
