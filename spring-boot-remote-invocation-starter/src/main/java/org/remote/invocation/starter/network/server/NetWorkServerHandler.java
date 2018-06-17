@@ -25,7 +25,8 @@ public class NetWorkServerHandler extends BaseHandler {
                 loss_connect_time++;
                 if (loss_connect_time > 2) {
 //                    log.info("关闭不活跃的channel");
-                    //ctx.channel().close();
+//                    ctx.channel().close();
+                } else {
                     receipt();
                 }
             }
