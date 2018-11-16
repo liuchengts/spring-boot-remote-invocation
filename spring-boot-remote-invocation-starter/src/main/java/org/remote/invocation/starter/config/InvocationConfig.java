@@ -75,6 +75,7 @@ public class InvocationConfig {
     private void initServiceModelConfig() {
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
+        //获得当前外网ip
         producer.setNetIp(IPUtils.getNetIP());
         log.info("localIp:" + producer.getLocalIp() + " | netIp:" + producer.getNetIp() + " | netSyncIp:" + netSyncIp);
         producer.setName(invocationProperties.getName() + "-producer");

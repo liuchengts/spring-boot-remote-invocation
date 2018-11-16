@@ -1,6 +1,5 @@
 package org.remote.invocation.starter.utils;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;

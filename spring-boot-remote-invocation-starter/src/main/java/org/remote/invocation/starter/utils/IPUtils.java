@@ -132,7 +132,7 @@ public class IPUtils {
     public static boolean checkConnected(String ip, Integer leaderPort) {
         Socket socket = new Socket();
         try {
-            socket.connect(new InetSocketAddress(ip, leaderPort),120);
+            socket.connect(new InetSocketAddress(ip, leaderPort), 120);
         } catch (IOException e) {
             return false;
         } finally {
@@ -150,43 +150,31 @@ public class IPUtils {
      * @return 返回外网ip
      */
     public static String getNetIP() {
-        String ip = "";
-        String chinaz = "http://ip.chinaz.com";
-
-        StringBuilder inputLine = new StringBuilder();
-        String read = "";
-        URL url = null;
-        HttpURLConnection urlConnection = null;
+        String sh = "curl ifconfig.me";
         BufferedReader in = null;
+        String line = "";
         try {
-            url = new URL(chinaz);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            in = new BufferedReader( new InputStreamReader(urlConnection.getInputStream(),"UTF-8"));
-            while((read=in.readLine())!=null){
-                inputLine.append(read+"\r\n");
+            Process process = Runtime.getRuntime().exec(sh);
+            int status = process.waitFor();
+            if (status != 0) {
+                log.error("Failed to getNetIP shell's command and the return status's is: " + status);
+                return "";
             }
-            //System.out.println(inputLine.toString());
-        } catch (MalformedURLException e) {
+            in = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+            line = in.readLine();
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally{
-            if(in!=null){
+        } finally {
+            if (in != null) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         }
-        Pattern p = Pattern.compile("\\<dd class\\=\"fz24\">(.*?)\\<\\/dd>");
-        Matcher m = p.matcher(inputLine.toString());
-        if(m.find()){
-            String ipstr = m.group(1);
-            ip = ipstr;
-        }
-        return ip;
+        log.info("NetIP:" + line);
+        return line;
     }
 
     public static void main(String[] args) {
