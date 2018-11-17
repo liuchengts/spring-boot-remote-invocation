@@ -79,7 +79,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
             String m = (String) msg;
             if (m.startsWith(HEARTBEAT)) {
                 Long time = Long.valueOf(m.replace(HEARTBEAT, ""));
-                log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
+//                log.info("[" + name + "]心跳连接维持 " + (System.currentTimeMillis() - time));
             } else if (m.startsWith(SEIZELEADER)) {
                 //请求回发当前服务器路由信息
                 pushAllRouteCache();
