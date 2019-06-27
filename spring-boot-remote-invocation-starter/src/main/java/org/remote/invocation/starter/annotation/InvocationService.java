@@ -3,7 +3,7 @@ package org.remote.invocation.starter.annotation;
 import java.lang.annotation.*;
 
 /**
- * eanble Invocation Service
+ * Enable Invocation Service
  *
  * @author liucheng
  */

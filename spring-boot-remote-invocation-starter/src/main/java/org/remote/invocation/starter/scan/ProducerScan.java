@@ -23,18 +23,18 @@ import java.util.*;
 @Component
 public class ProducerScan {
     Producer producer;
+    ApplicationContext applicationContext;
 
     /**
      * 初始化
      */
     public void init(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
         Producer producer = applicationContext.getBean(Producer.class);
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(InvocationService.class);
         Map<String, ServiceBean> services = new HashMap<>();
-        if (beanNames != null) {
-            for (String beanPath : beanNames) {
-                services.put(beanPath, this.getServiceBean(beanPath, applicationContext));
-            }
+        for (String beanPath : beanNames) {
+            services.put(beanPath, this.getServiceBean(beanPath));
         }
         producer.setServices(services);
     }
@@ -45,7 +45,7 @@ public class ProducerScan {
      * @param beanPath 实例路径
      * @return 返回ServiceBean
      */
-    private ServiceBean getServiceBean(String beanPath, ApplicationContext applicationContext) {
+    private ServiceBean getServiceBean(String beanPath) {
         ServiceBean serviceBean = new ServiceBean();
         try {
             Object object = applicationContext.getBean(beanPath);

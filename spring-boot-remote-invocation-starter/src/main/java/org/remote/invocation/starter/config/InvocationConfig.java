@@ -36,7 +36,8 @@ public class InvocationConfig {
     ApplicationContext applicationContext;
     @Autowired
     InvocationProperties invocationProperties;
-    ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    ObjectMapper objectMapper;
     Producer producer;
     Consumes consumes;
     ConsumesScan consumesScan;
@@ -45,11 +46,14 @@ public class InvocationConfig {
     int leaderPort;
     String netSyncIp;
     NetWork netWork;
+    //是否开启远程调用
+    boolean isEnableInvocation = false;
 
     public void initInvocationConfig() {
         getModel();
-        initServiceModelConfig();
         initScanPath();
+        if (!isEnableInvocation) return;
+        initServiceModelConfig();
         initScan();
         initServiceRoute();
         initRouteCache();
@@ -87,9 +91,10 @@ public class InvocationConfig {
     /**
      * 初始化扫描路径
      */
-    public void initScanPath() {
+    private void initScanPath() {
         String[] beanNames = applicationContext.getBeanNamesForAnnotation(EnableInvocationConfiguration.class);
         if (beanNames != null) {
+            isEnableInvocation = true;
             Object object = applicationContext.getBean(beanNames[0]);
             EnableInvocationConfiguration enableInvocationConfiguration = object.getClass().getAnnotation(EnableInvocationConfiguration.class);
             String value = enableInvocationConfiguration.value();

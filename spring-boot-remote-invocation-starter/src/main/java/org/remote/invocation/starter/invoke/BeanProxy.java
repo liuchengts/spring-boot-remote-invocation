@@ -1,12 +1,14 @@
 package org.remote.invocation.starter.invoke;
 
 import org.remote.invocation.starter.common.Producer;
+import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.event.InvocationEvent;
 import org.remote.invocation.starter.scan.ProducerScan;
 import org.remote.invocation.starter.utils.ReflexUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.remoting.caucho.HessianServiceExporter;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -41,6 +44,8 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
         producer = applicationContext.getBean(Producer.class);
         producerScan = applicationContext.getBean(ProducerScan.class);
         producerScan.init(applicationContext);
+
+        applicationContext.getBean(InvocationConfig.class).initInvocationConfig();
     }
 
 
@@ -85,8 +90,7 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
      * 发布远程资源就绪事件
      */
     private void publishInvocationEvent() {
-        InvocationEvent invocationEvent = new InvocationEvent(applicationContext);
-        applicationContext.publishEvent(invocationEvent);
+        applicationContext.publishEvent(new InvocationEvent(applicationContext));
     }
 
     /**

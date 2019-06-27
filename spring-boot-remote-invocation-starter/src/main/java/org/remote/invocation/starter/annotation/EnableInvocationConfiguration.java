@@ -4,7 +4,7 @@ package org.remote.invocation.starter.annotation;
 import java.lang.annotation.*;
 
 /**
- * Enable Dubbo (for provider or consumer) for spring boot application
+ * Enable Invocation (for provider or consumer) for spring boot application
  *
  * @author liucheng
  */
