@@ -76,7 +76,7 @@ public class ResourceWired {
                         field.setAccessible(true);
                         Object objImpl = routeCache.getServiceObjectImpl(cla);
                         field.set(obj, objImpl);
-                        log.info("注入时间:" + System.currentTimeMillis() + " interface:" + cla.getSimpleName() + "  interfaceImpl:" + objImpl);
+                        log.debug("注入时间:" + System.currentTimeMillis() + " interface:" + cla.getSimpleName() + "  interfaceImpl:" + objImpl);
                         field.setAccessible(false);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();

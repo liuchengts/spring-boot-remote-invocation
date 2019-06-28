@@ -39,7 +39,7 @@ public class NetWorkClientHandler extends BaseHandler {
         InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
         ip = insocket.getAddress().getHostAddress();
         port = insocket.getPort();
-        log.info("Client " + ip + ":" + port + " 停止时间是：" + System.currentTimeMillis());
+        log.debug("Client " + ip + ":" + port + " 停止时间是：" + System.currentTimeMillis());
         new Thread(this::leaderClientStart).start();
         seizeLeaderServer();
     }
@@ -60,7 +60,7 @@ public class NetWorkClientHandler extends BaseHandler {
         boolean fag = false;
         while (!fag) {
             if (ctx.channel().isActive()) {
-                log.info("客户端可以正常连接");
+                log.debug("客户端可以正常连接");
                 return;
             }
             try {

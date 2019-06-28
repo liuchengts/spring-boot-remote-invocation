@@ -77,9 +77,9 @@ public class NetWorkClient extends Thread {
         channelFutureListener = new ChannelFutureListener() {
             public void operationComplete(ChannelFuture f) throws Exception {
                 if (f.isSuccess()) {
-                    log.info("重新连接服务器成功");
+                    log.debug("重新连接服务器成功");
                 } else {
-                    log.info("重新连接服务器失败");
+                    log.debug("重新连接服务器失败");
                     //  3秒后重新连接
                     restartConnect();
                 }

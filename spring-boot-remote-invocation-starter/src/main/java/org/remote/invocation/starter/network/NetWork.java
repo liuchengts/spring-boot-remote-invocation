@@ -55,7 +55,7 @@ public class NetWork extends Thread {
                 }
             }
         } catch (Exception e) {
-            log.info("leader已存在");
+            log.debug("leader已存在");
         }
     }
 
@@ -68,7 +68,7 @@ public class NetWork extends Thread {
         mapNetworkClient.values().forEach(client -> {
             client.requestRouteCache();
         });
-        log.info("leaderServer竞争完成" + System.currentTimeMillis());
+        log.debug("leaderServer竞争完成" + System.currentTimeMillis());
     }
 
     /**
@@ -87,7 +87,7 @@ public class NetWork extends Thread {
      */
     public boolean leaderClientStart(String ip, int leaderPort) {
         if (mapNetworkClient.containsKey(ip)) {
-            log.info(ip + ":" + leaderPort + " Client已存在");
+            log.debug(ip + ":" + leaderPort + " Client已存在");
             return true;
         }
         try {
@@ -97,7 +97,7 @@ public class NetWork extends Thread {
                 if (netWorkClient.getState().equals(State.WAITING)) {
                     mapNetworkClient.put(ip, netWorkClient);
                     netWorkClient.sendMsg(invocationConfig.getServiceRoute());
-                    log.info("向" + ip + ":" + leaderPort + "发送本地路由成功");
+                    log.debug("向" + ip + ":" + leaderPort + "发送本地路由成功");
                     return true;
                 } else {
                     Thread.sleep(10);
@@ -121,7 +121,7 @@ public class NetWork extends Thread {
             String[] ips = invocationConfig.getNetSyncIp().split(",");
             for (String ip : ips) {
                 ipSet.add(ip);
-                log.info("add ip " + ip);
+                log.debug("add ip " + ip);
             }
         }
         try {

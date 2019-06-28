@@ -43,7 +43,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) {
         this.ctx = ctx;
         this.name = this.getClass().getSimpleName() + ctx.channel().remoteAddress();
-        log.info("[" + name + "]启动");
+        log.debug("[" + name + "]启动");
         new Thread(this::sendQueue).start();
         //客户端启动路由维护
         if (name.startsWith(NetWorkClientHandler.class.getSimpleName())) {
@@ -121,7 +121,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
     public void sendMsg(Object msg) {
         try {
             if (ctx == null) {
-                log.info("消息加入待发送队列");
+                log.debug("消息加入待发送队列");
                 msgList.add(msg);
             } else {
                 ctx.channel().writeAndFlush(msg);
@@ -151,7 +151,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 处理待发送队列
      */
     public void sendQueue() {
-        log.info("[" + name + "]待发送消息队列启动");
+        log.debug("[" + name + "]待发送消息队列启动");
         try {
             while (true) {
                 if (msgList.isEmpty()) {
@@ -175,7 +175,7 @@ public abstract class BaseHandler extends ChannelInboundHandlerAdapter {
      * 维护路由
      */
     public void maintain() {
-        log.info("[" + name + "]路由维护线程启动");
+        log.debug("[" + name + "]路由维护线程启动");
         while (true) {
             try {
                 if (routeCache.checkRoute()) {

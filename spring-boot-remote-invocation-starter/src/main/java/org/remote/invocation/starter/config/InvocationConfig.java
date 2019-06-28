@@ -158,7 +158,7 @@ public class InvocationConfig {
     public void verifyProducerJSON() {
         try {
             String producerJson = objectMapper.writeValueAsString(producer);
-            log.debug("producerJson:" + producerJson);
+            log.info("producerJson:" + producerJson);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -170,7 +170,7 @@ public class InvocationConfig {
     public void verifyConsumesJSON() {
         try {
             String consumesJson = objectMapper.writeValueAsString(consumes);
-            log.debug("consumesJson:" + consumesJson);
+            log.info("consumesJson:" + consumesJson);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
