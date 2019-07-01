@@ -2,7 +2,9 @@ package org.remote.invocation.starter.network.server;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetServerOptions;
 import io.vertx.core.net.NetSocket;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.network.BaseHandle;
@@ -25,9 +27,11 @@ public class LeaderServer extends BaseHandle implements Handler<NetSocket> {
     public boolean start() {
         AtomicBoolean fag = new AtomicBoolean(false);
         try {
-            NetServer server = vertx.createNetServer();
+            NetServerOptions options = new NetServerOptions()
+                    .setPort(leaderPort);
+            NetServer server = vertx.createNetServer(options);
             server.connectHandler(this);
-            server.listen(leaderPort, res -> {
+            server.listen(res -> {
                 if (res.succeeded()) {
                     log.info("服务端启动成功:" + server.actualPort());
                     fag.set(true);

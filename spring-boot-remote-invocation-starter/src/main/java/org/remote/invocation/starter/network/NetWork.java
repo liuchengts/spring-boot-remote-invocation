@@ -119,6 +119,14 @@ public class NetWork extends Thread {
         if (isLeader) {
             //公布新的Leader
         }
+        //发送本地路由到远程服务器
+        nodeClient.sendAllMsg(Message.builder()
+                .instruction(Message.InstructionEnum.ADD_ROUTE)
+                .obj(invocationConfig.getServiceRoute())
+                .time(System.currentTimeMillis())
+                .build());
+
+        //发送指令要求远程服务器响应路由
         nodeClient.sendAllMsg(Message.builder()
                 .instruction(Message.InstructionEnum.SEIZELEADER)
                 .time(System.currentTimeMillis())
