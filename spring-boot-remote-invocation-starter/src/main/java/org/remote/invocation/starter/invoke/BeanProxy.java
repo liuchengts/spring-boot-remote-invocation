@@ -44,8 +44,6 @@ public class BeanProxy implements BeanDefinitionRegistryPostProcessor {
         producer = applicationContext.getBean(Producer.class);
         producerScan = applicationContext.getBean(ProducerScan.class);
         producerScan.init(applicationContext);
-
-        applicationContext.getBean(InvocationConfig.class).initInvocationConfig();
     }
 
 

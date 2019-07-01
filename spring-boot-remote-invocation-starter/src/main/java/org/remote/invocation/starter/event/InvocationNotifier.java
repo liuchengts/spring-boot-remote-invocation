@@ -17,7 +17,7 @@ public class InvocationNotifier implements ApplicationListener {
         if (applicationEvent instanceof InvocationEvent) {
             InvocationEvent event = (InvocationEvent) applicationEvent;
             ApplicationContext applicationContext = (ApplicationContext) event.getSource();
-            applicationContext.getBean(InvocationConfig.class).initInvocationConfig();
+            applicationContext.getBean(InvocationConfig.class).init();
         }
     }
 }

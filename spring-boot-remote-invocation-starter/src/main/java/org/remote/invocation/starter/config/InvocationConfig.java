@@ -2,6 +2,7 @@ package org.remote.invocation.starter.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vertx.core.Vertx;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.InvocationProperties;
@@ -49,7 +50,7 @@ public class InvocationConfig {
     //是否开启远程调用
     boolean isEnableInvocation = false;
 
-    public void initInvocationConfig() {
+    public void init() {
         getModel();
         initScanPath();
         if (!isEnableInvocation) return;
@@ -79,8 +80,11 @@ public class InvocationConfig {
     private void initServiceModelConfig() {
         //获得当前内网ip
         producer.setLocalIp(IPUtils.getLocalIP());
-        //获得当前外网ip
-        producer.setNetIp(IPUtils.getNetIP());
+        if (invocationProperties.getIsNetIp()) {
+            //获得当前外网ip
+            log.info("外网ip获取中");
+            producer.setNetIp(IPUtils.getNetIP());
+        }
         log.info("localIp:" + producer.getLocalIp() + " | netIp:" + producer.getNetIp() + " | netSyncIp:" + netSyncIp);
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
@@ -109,7 +113,7 @@ public class InvocationConfig {
             } else {
                 consumes.setScanPath(value);
             }
-            log.debug("扫描起点：" + consumes.getScanPath());
+            log.info("扫描起点：" + consumes.getScanPath());
         }
     }
 
@@ -147,7 +151,7 @@ public class InvocationConfig {
      * 输出配置
      */
     private void outPrin() {
-        log.debug("配置输出：");
+        log.info("配置输出：");
         verifyProducerJSON();
         verifyConsumesJSON();
     }

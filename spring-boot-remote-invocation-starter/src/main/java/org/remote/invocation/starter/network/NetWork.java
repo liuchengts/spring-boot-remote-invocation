@@ -1,12 +1,13 @@
 package org.remote.invocation.starter.network;
 
+import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.config.InvocationConfig;
-import org.remote.invocation.starter.network.client.NetWorkClient;
-import org.remote.invocation.starter.network.server.NetWorkServer;
+import org.remote.invocation.starter.network.client.NodeClient;
+import org.remote.invocation.starter.network.server.LeaderServer;
 import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.util.StringUtils;
-import java.util.Map;
+
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -20,120 +21,75 @@ import java.util.concurrent.*;
 public class NetWork extends Thread {
     InvocationConfig invocationConfig;
     int leaderPort;
-    static Map<String, NetWorkClient> mapNetworkClient = new ConcurrentHashMap<>();
-    NetWorkClient netWorkClientLocal;
-    NetWorkServer netWorkServerLeader;
+    Vertx vertx = Vertx.vertx();
+    LeaderServer leaderServer;
+    NodeClient nodeClient;
+    String localIp;
+    boolean isLeader;
 
     public NetWork(InvocationConfig invocationConfig) {
         this.invocationConfig = invocationConfig;
         this.leaderPort = invocationConfig.getLeaderPort();
     }
 
-
     @Override
     public void run() {
-        leaderServerStart(leaderPort);
+        initNetWork();
+        leaderServerStart();
         leaderClientLocalStart();
-        publishLeader(leaderPort);
+        publishLeader();
+        syncRouteCacheAll();
     }
 
+
     /**
-     * 创建leader
-     *
-     * @param leaderPort 端口
-     * @return 返回创建的leader
+     * 初始化通讯组件
      */
-    public void leaderServerStart(int leaderPort) {
-        try {
-            netWorkServerLeader = new NetWorkServer(leaderPort, invocationConfig);
-            netWorkServerLeader.start();
-            while (true) {
-                if (netWorkServerLeader.getState().equals(State.WAITING)) {
-                    return;
-                } else {
-                    Thread.sleep(10);
-                }
-            }
-        } catch (Exception e) {
-            log.debug("leader已存在");
-        }
+    private void initNetWork() {
+        leaderServer = new LeaderServer(vertx, leaderPort);
+        nodeClient = new NodeClient(vertx, leaderPort);
+        localIp = IPUtils.getLocalIP();
     }
 
     /**
      * 竞争leader
      */
-    public void seizeLeaderServer() {
-        leaderServerStart(leaderPort);
-        //告诉所有的远程leader，发来最新的路由信息
-        mapNetworkClient.values().forEach(client -> {
-            client.requestRouteCache();
-        });
-        log.debug("leaderServer竞争完成" + System.currentTimeMillis());
+    private void leaderServerStart() {
+        isLeader = leaderServer.start();
     }
 
     /**
      * 创建本机客户端，连接到本地leader
      */
-    public void leaderClientLocalStart() {
-        String localIp = IPUtils.getLocalIP();
-        leaderClientStart(localIp, leaderPort);
-        netWorkClientLocal = mapNetworkClient.get(localIp);
+    private void leaderClientLocalStart() {
+        nodeClient.start(localIp);
     }
 
     /**
-     * 创建本机客户端，连接到远程leader
-     *
-     * @param leaderPort leader端口
+     * 创建连接到远程leader的客户端
      */
-    public boolean leaderClientStart(String ip, int leaderPort) {
-        if (mapNetworkClient.containsKey(ip)) {
-            log.debug(ip + ":" + leaderPort + " Client已存在");
-            return true;
+    private void publishLeader() {
+        if (StringUtils.isEmpty(invocationConfig.getNetSyncIp())) {
+            return;
         }
-        try {
-            NetWorkClient netWorkClient = new NetWorkClient(leaderPort, ip, invocationConfig);
-            netWorkClient.start();
-            while (true) {
-                if (netWorkClient.getState().equals(State.WAITING)) {
-                    mapNetworkClient.put(ip, netWorkClient);
-                    netWorkClient.sendMsg(invocationConfig.getServiceRoute());
-                    log.debug("向" + ip + ":" + leaderPort + "发送本地路由成功");
-                    return true;
-                } else {
-                    Thread.sleep(10);
-                }
-            }
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * 将本机leader发布出去
-     *
-     * @param leaderPort 约定的leader端口
-     */
-    private void publishLeader(int leaderPort) {
         ExecutorService executor = Executors.newCachedThreadPool();
         Set<String> ipSet = IPUtils.getLocalIPs();
         ipSet.remove(IPUtils.getLocalIP());
-        if (!StringUtils.isEmpty(invocationConfig.getNetSyncIp())) {
-            String[] ips = invocationConfig.getNetSyncIp().split(",");
-            for (String ip : ips) {
-                ipSet.add(ip);
-                log.debug("add ip " + ip);
-            }
+        String[] ips = invocationConfig.getNetSyncIp().split(",");
+        for (String ip : ips) {
+            ipSet.add(ip);
+            log.info("add ip " + ip);
         }
         try {
-            final CountDownLatch cdOrder = new CountDownLatch(1);//将军
-            final CountDownLatch cdAnswer = new CountDownLatch(ipSet.size());//小兵 10000
+            final CountDownLatch cdOrder = new CountDownLatch(1);
+            final CountDownLatch cdAnswer = new CountDownLatch(ipSet.size());
             for (String ip : ipSet) {
                 Runnable runnable = () -> {
                     try {
                         cdOrder.await(); // 处于等待状态
                         try {
                             if (IPUtils.checkConnected(ip, leaderPort)) {
-                                leaderClientStart(ip, leaderPort);
+                                nodeClient.start(ip);
                             }
                         } catch (Exception e) {
                             // XXX: handle exception
@@ -154,33 +110,18 @@ public class NetWork extends Thread {
             e.printStackTrace();
         }
         executor.shutdown();
-        log.debug("publishLeader结果:" + (mapNetworkClient.size() - 1));
-    }
-
-
-    /**
-     * 根据ip获得一个客户端
-     *
-     * @param ip ip
-     * @return 返回客户端
-     */
-    public NetWorkClient getMapNetworkClient(String ip) {
-        if (mapNetworkClient.containsKey(ip)) {
-            return mapNetworkClient.get(ip);
-        }
-        return null;
     }
 
     /**
-     * 根据id删除一个客户端缓存
-     *
-     * @param ip ip
+     * 请求同步远程路由信息
      */
-    public void removeMapNetworkClient(String ip) {
-        if (mapNetworkClient.containsKey(ip)) {
-            mapNetworkClient.remove(ip);
+    private void syncRouteCacheAll() {
+        if (isLeader) {
+            //公布新的Leader
         }
+        nodeClient.sendAllMsg(Message.builder()
+                .instruction(Message.InstructionEnum.SEIZELEADER)
+                .time(System.currentTimeMillis())
+                .build());
     }
-
-
 }

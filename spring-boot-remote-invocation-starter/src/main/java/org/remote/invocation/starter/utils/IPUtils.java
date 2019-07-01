@@ -96,7 +96,7 @@ public class IPUtils {
      */
     private static boolean isIntranetIp(String ip) {
         try {
-            if (ip.startsWith("10.") || ip.startsWith("192.168.")) return true;
+            if (ip.startsWith("172.") || ip.startsWith("10.") || ip.startsWith("192.168.")) return true;
             // 172.16.x.x～172.31.x.x
             String[] ns = ip.split("\\.");
             int ipSub = Integer.valueOf(ns[0] + ns[1]);
