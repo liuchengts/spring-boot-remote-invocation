@@ -236,7 +236,7 @@ public class RouteCache {
         }
         executor.shutdown();
         //routeSet剩下的是需要从路由中移除的
-        log.info("需要移除的路由数量" + routeSet.size());
+//        log.info("需要移除的路由数量" + routeSet.size());
         removeRouteCache(routeSet);
         return routeSet.size() > 0;
     }
