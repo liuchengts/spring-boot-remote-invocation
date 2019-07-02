@@ -9,21 +9,25 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * 路由缓存接口输出
+ * 接口输出
  *
  * @author liucheng
  * @create 2018-06-05 09:29
  **/
 @RestController
-@RequestMapping("/route_cache")
+@RequestMapping("/invocation")
 public class CacheController {
 
     @Autowired
     ManageRpcService manageRpcService;
 
-    @RequestMapping("/all")
+    @RequestMapping("/route_cache/all")
     public Map<String, ServiceRoute> all() {
         return manageRpcService.findAllRouteCache();
     }
 
+    @RequestMapping("/local/ip")
+    public Map<String, String> ip() {
+        return manageRpcService.getIp();
+    }
 }

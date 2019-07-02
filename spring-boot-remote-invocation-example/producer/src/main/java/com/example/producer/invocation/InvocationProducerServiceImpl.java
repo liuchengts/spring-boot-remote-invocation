@@ -1,10 +1,11 @@
-package com.example.producer.service.impl;
+package com.example.producer.invocation;
 
 import com.example.api.TestProducer2Service;
 import com.example.api.TestProducerService;
+import com.example.producer.service.TestService;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.annotation.InvocationService;
-import org.remote.invocation.starter.utils.IPUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,33 +15,28 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @InvocationService
 @Component("testProducers")
-public class TestProducerServiceImpl implements TestProducerService, TestProducer2Service {
-    static {
-        log.info("我被初始化了" + void.class);
-    }
+public class InvocationProducerServiceImpl implements TestProducerService, TestProducer2Service {
+
+    @Autowired
+    TestService testService;
 
     @Override
     public String findOne(Long id) {
-        log.info("findOne");
-        return "findOne" + ": ip" + IPUtils.getNetIP();
+        return testService.findOne(id);
     }
-
 
     @Override
     public String find2One(Long id) {
-        log.info("find2One");
-        return "find2One" + ": ip" + IPUtils.getNetIP();
+        return testService.find2One(id);
     }
 
     @Override
     public String update(Long id, Integer type) {
-        log.info("update");
-        return "update:" + ": ip" + IPUtils.getNetIP();
+        return testService.update(id, type);
     }
 
     @Override
     public String update2(Long id, Integer type) {
-        log.info("update2");
-        return "update2:" + ": ip" + IPUtils.getNetIP();
+        return testService.update2(id, type);
     }
 }

@@ -19,5 +19,4 @@ public class ProducerApplication {
 //        exporter.setServiceInterface(TestProducerService.class);
 //        return exporter;
 //    }
-
 }

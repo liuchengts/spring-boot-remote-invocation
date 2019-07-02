@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.remote.invocation.starter.InvocationProperties;
 import org.remote.invocation.starter.annotation.EnableInvocationConfiguration;
+import org.remote.invocation.starter.cache.LocalConfigCache;
 import org.remote.invocation.starter.cache.RouteCache;
 import org.remote.invocation.starter.common.Consumes;
 import org.remote.invocation.starter.common.Producer;
@@ -33,6 +34,7 @@ import org.springframework.util.StringUtils;
 @Component
 @EnableConfigurationProperties(InvocationProperties.class)
 public class InvocationConfig {
+    LocalConfigCache localConfigCache = LocalConfigCache.getInstance(); //本地配置缓存
     @Autowired
     ApplicationContext applicationContext;
     @Autowired
@@ -46,11 +48,14 @@ public class InvocationConfig {
     ServiceRoute serviceRoute;
     int leaderPort;
     String netSyncIp;
+    String netIp;
+    String localIp;
     NetWork netWork;
     //是否开启远程调用
     boolean isEnableInvocation = false;
 
     public void init() {
+        getIP();
         getModel();
         initScanPath();
         if (!isEnableInvocation) return;
@@ -78,13 +83,8 @@ public class InvocationConfig {
      * 配置服务暴露model
      */
     private void initServiceModelConfig() {
-        //获得当前内网ip
-        producer.setLocalIp(IPUtils.getLocalIP());
-        if (invocationProperties.getIsNetIp()) {
-            //获得当前外网ip
-            log.info("外网ip获取中");
-            producer.setNetIp(IPUtils.getNetIP());
-        }
+        producer.setLocalIp(localIp);
+        producer.setNetIp(netIp);
         log.info("localIp:" + producer.getLocalIp() + " | netIp:" + producer.getNetIp() + " | netSyncIp:" + netSyncIp);
         producer.setName(invocationProperties.getName() + "-producer");
         producer.setPort(invocationProperties.getPort());
@@ -114,6 +114,7 @@ public class InvocationConfig {
                 consumes.setScanPath(value);
             }
             log.info("扫描起点：" + consumes.getScanPath());
+            localConfigCache.setLeaderPort(leaderPort);
         }
     }
 
@@ -145,6 +146,16 @@ public class InvocationConfig {
     private void initNetwork() {
         netWork = new NetWork(this);
         netWork.start();
+    }
+
+    private void getIP() {
+        log.info("获得网络环境数据...");
+        //获得当前内网ip
+        localIp = IPUtils.getLocalIP();
+        //获得外网ip
+        netIp = IPUtils.getNetIP();
+        localConfigCache.setLocalIp(localIp);
+        localConfigCache.setNetIp(netIp);
     }
 
     /**

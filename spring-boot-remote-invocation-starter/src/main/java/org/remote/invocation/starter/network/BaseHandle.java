@@ -1,7 +1,9 @@
 package org.remote.invocation.starter.network;
 
+import com.fasterxml.jackson.databind.JavaType;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class BaseHandle {
@@ -53,8 +56,28 @@ public class BaseHandle {
             pushAllRouteCache();
         } else if (message.getInstruction().equals(Message.InstructionEnum.BATCH_ADD_ROUTE)) {
             //批量增加路由缓存
-            routeCache.updateRouteCache(JsonObject.mapFrom(message.getObj()).getMap());
+            try {
+                List<ServiceRoute> list = JsonObject.mapFrom(message.getObj()).getMap().values()
+                        .stream().map(e -> JsonObject.mapFrom(e).mapTo(ServiceRoute.class))
+                        .collect(Collectors.toList());
+                routeCache.updateRouteCache(list);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
         }
+    }
+
+    /**
+     * 获取泛型的Collection Type
+     *
+     * @param collectionClass 泛型的Collection
+     * @param elementClasses  元素类
+     * @return JavaType Java类型
+     * @since 1.0
+     */
+    private JavaType getCollectionType(Class collectionClass, Class elementClasses) {
+        return Json.mapper.getTypeFactory().constructCollectionType(collectionClass, elementClasses);
     }
 
     /**
@@ -103,12 +126,6 @@ public class BaseHandle {
             } catch (Exception e) {
                 messageQueue.add(message);
             }
-        }
-        try {
-            //防止2次消息在一次有限传输中发送了
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

@@ -17,4 +17,6 @@ public interface ManageRpcService {
      * @return 路由信息
      */
     Map<String, ServiceRoute> findAllRouteCache();
+
+    Map<String,String> getIp();
 }

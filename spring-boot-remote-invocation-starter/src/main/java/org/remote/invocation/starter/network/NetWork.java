@@ -127,9 +127,9 @@ public class NetWork extends Thread {
                 .build());
 
         //发送指令要求远程服务器响应路由
-        nodeClient.sendAllMsg(Message.builder()
-                .instruction(Message.InstructionEnum.SEIZELEADER)
-                .time(System.currentTimeMillis())
-                .build());
+//        nodeClient.sendAllMsg(Message.builder()
+//                .instruction(Message.InstructionEnum.SEIZELEADER)
+//                .time(System.currentTimeMillis())
+//                .build());
     }
 }

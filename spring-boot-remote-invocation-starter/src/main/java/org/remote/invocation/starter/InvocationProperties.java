@@ -46,10 +46,6 @@ public class InvocationProperties implements Serializable {
      * leader通信端口，此配置优先应用
      */
     Integer leaderPort;
-    /**
-     * 是否查询外网ip(局域网模式)
-     */
-    Boolean isNetIp = Boolean.TRUE;
 
     /**
      * 是否注册为生产者

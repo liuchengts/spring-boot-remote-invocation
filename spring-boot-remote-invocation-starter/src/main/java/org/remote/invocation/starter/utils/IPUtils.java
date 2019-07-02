@@ -150,7 +150,8 @@ public class IPUtils {
      * @return 返回外网ip
      */
     public static String getNetIP() {
-        String sh = "curl ifconfig.me";
+        String sh = "curl icanhazip.com";
+//        String sh = "curl ifconfig.me";
         BufferedReader in = null;
         String line = "";
         try {
@@ -176,14 +177,4 @@ public class IPUtils {
         log.info("NetIP:" + line);
         return line;
     }
-
-    public static void main(String[] args) {
-        log.debug("外网地址：" + getNetIP());
-        log.debug("内网地址：" + getLocalIP());
-        System.out.println(IPUtils.checkConnected("118.25.41.63", 3399));
-//        for (String ip : getLocalIPs()) {
-//            log.debug(ip);
-//        }
-    }
-
 }

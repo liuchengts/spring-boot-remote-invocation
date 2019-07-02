@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,14 +70,11 @@ public class RouteCache {
     /**
      * 批量更新路由缓存，这里只增加
      */
-    public void updateRouteCache(Map<String, Object> cacheMap) {
-        if (cacheMap == null || cacheMap.isEmpty()) {
+    public void updateRouteCache(List<ServiceRoute> cacheList) {
+        if (cacheList == null || cacheList.isEmpty()) {
             return;
         }
-        cacheMap.values().forEach(obj -> {
-            ServiceRoute serviceRoute = (ServiceRoute) obj;
-            addServiceRoute(serviceRoute);
-        });
+        cacheList.forEach(serviceRoute -> addServiceRoute(serviceRoute));
     }
 
     /**
