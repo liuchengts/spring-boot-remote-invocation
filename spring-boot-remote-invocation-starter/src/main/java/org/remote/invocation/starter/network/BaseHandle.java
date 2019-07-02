@@ -44,7 +44,7 @@ public class BaseHandle {
     protected void handlerMsg(Message message) {
         if (message.getInstruction().equals(Message.InstructionEnum.ADD_ROUTE)) {
             //将接收到的路由消息放入路由缓存
-            ServiceRoute route = (ServiceRoute) message.getObj();
+            ServiceRoute route = JsonObject.mapFrom(message.getObj()).mapTo(ServiceRoute.class);
             routeCache.addServiceRoute(route);
             //给所有客户端推送消息
             pushAllRouteCache();
@@ -53,7 +53,7 @@ public class BaseHandle {
             pushAllRouteCache();
         } else if (message.getInstruction().equals(Message.InstructionEnum.BATCH_ADD_ROUTE)) {
             //批量增加路由缓存
-            routeCache.updateRouteCache((Map<String, ServiceRoute>) message.getObj());
+            routeCache.updateRouteCache(JsonObject.mapFrom(message.getObj()).getMap());
         }
     }
 
@@ -103,6 +103,12 @@ public class BaseHandle {
             } catch (Exception e) {
                 messageQueue.add(message);
             }
+        }
+        try {
+            //防止2次消息在一次有限传输中发送了
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

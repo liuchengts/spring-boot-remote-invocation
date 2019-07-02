@@ -69,11 +69,12 @@ public class RouteCache {
     /**
      * 批量更新路由缓存，这里只增加
      */
-    public void updateRouteCache(Map<String, ServiceRoute> cacheMap) {
+    public void updateRouteCache(Map<String, Object> cacheMap) {
         if (cacheMap == null || cacheMap.isEmpty()) {
             return;
         }
-        cacheMap.values().forEach(serviceRoute -> {
+        cacheMap.values().forEach(obj -> {
+            ServiceRoute serviceRoute = (ServiceRoute) obj;
             addServiceRoute(serviceRoute);
         });
     }
