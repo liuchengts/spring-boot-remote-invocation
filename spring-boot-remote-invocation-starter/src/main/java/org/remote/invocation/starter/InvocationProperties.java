@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +18,7 @@ import java.io.Serializable;
  * @author liucheng
  * @create 2018-05-29 16:47
  **/
+@Scope
 @Data
 @Builder
 @NoArgsConstructor

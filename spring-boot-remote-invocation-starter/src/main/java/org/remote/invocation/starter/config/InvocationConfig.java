@@ -20,6 +20,7 @@ import org.remote.invocation.starter.utils.IPUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
  * @author liucheng
  * @create 2018-05-29 18:00
  **/
+@Scope
 @Slf4j
 @Data
 @Component
@@ -165,6 +167,11 @@ public class InvocationConfig {
         log.info("配置输出：");
         verifyProducerJSON();
         verifyConsumesJSON();
+    }
+
+    public void refreshApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        //进行全局刷新，并且更新提供者注入
     }
 
     /**

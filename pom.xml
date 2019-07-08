@@ -10,5 +10,6 @@
     <modules>
         <module>spring-boot-remote-invocation-starter</module>
         <module>spring-boot-remote-invocation-example</module>
+        <module>rpc-starter</module>
     </modules>
 </project>

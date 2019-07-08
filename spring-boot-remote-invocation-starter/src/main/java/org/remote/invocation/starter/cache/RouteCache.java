@@ -8,6 +8,7 @@ import org.remote.invocation.starter.config.InvocationConfig;
 import org.remote.invocation.starter.invoke.HessianServiceHandle;
 import org.remote.invocation.starter.invoke.ResourceWired;
 import org.remote.invocation.starter.utils.IPUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
